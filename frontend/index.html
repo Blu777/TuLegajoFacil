@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <title>Mi Legajo — Carga de Horas Extras</title>
+  <meta name="description" content="Herramienta para automatizar la carga de horas extras en el sistema de legajos." />
+  
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icon.svg" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- ── SESSION LOGIN OVERLAY ── -->
+  <div id="login-overlay" style="display: flex; position: fixed; inset: 0; z-index: 9999; background: var(--bg-primary); align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+    <div class="card" style="width: 100%; max-width: 400px; margin: 1.5rem;">
+      <div class="card-header" style="justify-content: center; padding: 1.5rem;">
+        <h2 style="font-size: 1.2rem;"><span class="icon">🔒</span> Acceso a la App</h2>
+      </div>
+      <div class="card-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; text-align: center;">Por favor, ingresá las credenciales de administrador para continuar.</p>
+        <div class="field-group">
+          <div class="field">
+            <label for="app-user">Usuario</label>
+            <input id="app-user" type="text" placeholder="Ej: admin" autocomplete="username" />
+          </div>
+          <div class="field">
+            <label for="app-pass">Contraseña</label>
+            <input id="app-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+        </div>
+        <button id="btn-app-login" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Iniciar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <main class="container" id="main-app-container" style="display: none;">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">⏱</span>
+        <div>
+          <h1>Mi Legajo</h1>
+          <p class="subtitle">Automatizador de Horas Extras</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <div id="status-badge" class="status-badge badge-idle">
+          <span class="badge-dot"></span>
+          <span id="status-text">Listo</span>
+        </div>
+        <button id="btn-logout" class="btn btn-ghost btn-sm" title="Cerrar sesión">Salir</button>
+      </div>
+    </header>
+
+    <!-- TABS NAV -->
+    <nav class="tabs-nav card" style="margin-bottom: 2rem;">
+      <div class="card-body" style="padding: 0.5rem; display: flex; gap: 0.5rem;">
+        <button id="tab-submit" class="tab-btn active">📝 Cargar Horas</button>
+        <button id="tab-history" class="tab-btn">📜 Historial de Envíos</button>
+      </div>
+    </nav>
+
+    <!-- VIEW: SUBMIT HOURS -->
+    <div id="view-submit" class="grid-layout">
+      <!-- ── LEFT COLUMN ── -->
+      <div class="left-col">
+
+        <!-- Credentials card -->
+        <section class="card" id="credentials-card">
+          <div class="card-header">
+            <h2><span class="icon">🔑</span> Credenciales</h2>
+            <span class="hint" title="Si las credenciales están en variables de entorno, estos campos son opcionales.">?</span>
+          </div>
+          <div class="card-body">
+            <div class="env-notice" id="env-notice" style="display:none;">
+              <span class="env-icon">🌿</span>
+              Credenciales cargadas desde variables de entorno.
+            </div>
+            <div class="field-group" id="creds-fields">
+              <div class="field">
+                <label for="input-user">Usuario</label>
+                <input id="input-user" type="text" placeholder="usuario@empresa.com" autocomplete="username" />
+              </div>
+              <div class="field">
+                <label for="input-pass">Contraseña</label>
+                <div class="password-wrap">
+                  <input id="input-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+                  <button id="btn-toggle-pass" class="btn-icon" type="button" title="Mostrar/ocultar contraseña" aria-label="Toggle password visibility">
+                    <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button id="btn-test-login" class="btn btn-secondary btn-sm" type="button">
+              <span class="btn-icon-left">🔗</span> Probar conexión
+            </button>
+          </div>
+        </section>
+
+        <!-- Settings card -->
+        <section class="card" id="settings-card">
+          <div class="card-header">
+            <h2><span class="icon">⚙️</span> Configuración</h2>
+          </div>
+          <div class="card-body">
+            <div class="field-group">
+              <div class="field">
+                <label for="input-template">Tipo de Carga</label>
+                <select id="input-template" class="form-select">
+                  <option value="Autorización de horas extras TV Universal">TV Universal - Horas Extras</option>
+                  <option value="Autorización de horas extras Unife">Unife - Horas Extras</option>
+                  <option value="Autorización de trabajo Feriado">Feriado - Autorización de trabajo</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="input-tasks">Tareas a realizar</label>
+                <input id="input-tasks" type="text" value="Horas extras según solicitud" placeholder="Descripción de las tareas" />
+              </div>
+              <div class="field">
+                <label for="input-schedule">Horario Laboral Habitual</label>
+                <input id="input-schedule" type="text" value="Generico" placeholder="Ej: 09:00 a 18:00" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Summary card -->
+        <section class="card" id="summary-card">
+          <div class="card-header">
+            <h2><span class="icon">📊</span> Resumen</h2>
+          </div>
+          <div class="card-body summary-grid">
+            <div class="summary-item">
+              <span class="summary-label">Registros</span>
+              <span class="summary-value" id="summary-count">0</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Total horas</span>
+              <span class="summary-value" id="summary-hours">0.0 h</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ── RIGHT COLUMN ── -->
+      <div class="right-col">
+
+        <!-- Hours entry card -->
+        <section class="card entries-card">
+          <div class="card-header">
+            <h2><span class="icon">📋</span> Registros de Horas Extras</h2>
+            <button id="btn-add-row" class="btn btn-ghost btn-sm" type="button">
+              <span>＋</span> Agregar día
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table id="entries-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Fecha</th>
+                    <th>Horas</th>
+                    <th class="col-actions">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="entries-body">
+                  <!-- Rows injected by JS -->
+                </tbody>
+              </table>
+              <div id="empty-state" class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p>Todavía no hay registros.</p>
+                <p class="empty-hint">Hacé click en <strong>+ Agregar día</strong> para empezar.</p>
+              </div>
+            </div>
+            <div class="entries-footer">
+              <button id="btn-clear-all" class="btn btn-ghost btn-sm" type="button" style="display:none;">🗑 Borrar todo</button>
+              <button id="btn-submit" class="btn btn-primary" type="button" disabled>
+                <span class="btn-spinner" id="submit-spinner" style="display:none;"></span>
+                <span id="submit-label">⚡ Enviar todo al Legajo</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Log card -->
+        <section class="card log-card" id="log-card" style="display:none;">
+          <div class="card-header">
+            <h2><span class="icon">📟</span> Log de ejecución</h2>
+            <button id="btn-dismiss-log" class="btn btn-ghost btn-sm" type="button">✕ Cerrar</button>
+          </div>
+          <div class="card-body">
+            <div id="log-output" class="log-output"></div>
+          </div>
+        </section>
+
+      </div>
+    </div> <!-- END VIEW: SUBMIT HOURS -->
+
+    <!-- VIEW: HISTORY -->
+    <div id="view-history" style="display: none;">
+      <section class="card">
+        <div class="card-header">
+          <h2><span class="icon">🔍</span> Registro por Periodos</h2>
+        </div>
+        <div class="card-body">
+          <div class="field" style="max-width: 400px; margin-bottom: 1.5rem;">
+            <label for="period-select">Selecciona el Periodo (21 al 20)</label>
+            <select id="period-select" class="form-select">
+              <option value="">Cargando periodos...</option>
+            </select>
+          </div>
+          
+          <div id="history-summary" class="summary-area" style="margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-primary);">
+             Total Horas de este Periodo: <strong id="history-total-hours" style="color: var(--accent); font-size: 1.4rem;">0</strong> hs.
+          </div>
+
+          <div class="table-wrap">
+            <table class="entries-table" id="history-table" style="display: none;">
+              <thead>
+                <tr>
+                  <th>Fecha Trabajo</th>
+                  <th>Horas</th>
+                  <th>Plantilla y Tareas</th>
+                  <th>Enviado el</th>
+                </tr>
+              </thead>
+              <tbody id="history-list">
+              </tbody>
+            </table>
+            <div id="history-empty" class="empty-state visible">
+              <div class="empty-icon">📭</div>
+              <p>Esperando selección o no hay datos.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> <!-- END VIEW: HISTORY -->
+
+  </main>
+
+  <script src="/static/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          console.log('SW registrado con scope:', reg.scope);
+        }).catch(err => {
+          console.warn('Fallo el registro del SW:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+services:
+  legajo-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: legajo-automator:latest
+    container_name: legajo-automator
+    restart: unless-stopped
+
+    ports:
+      # Puerto web expuesto al host (solo el necesario)
+      - "8080:8080"       
+
+    environment:
+      # ─── Variables a configurar en la UI de TrueNAS (Custom App) ───
+      # Basic Auth (Credenciales para entrar a tu propia app)
+      - APP_USERNAME=
+      - APP_PASSWORD=
+
+      # Portal de tu Empleo
+      - LEGAJO_URL=https://app.tulegajo.com/login.htm
+      - LEGAJO_USER=
+      - LEGAJO_PASS=
+
+      # Playwright: deshabilita el sandboxing dentro de Docker
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+    volumes:
+      # Persistencia de Datos para TrueNAS:
+      # Aquí se guardará la base de datos SQLite con tu historial.
+      # Mapealo a un Dataset persistente en TrueNAS.
+      # ⚠️ MUY IMPORTANTE ⚠️: El Dataset en TrueNAS debe tener permisos ACL de ESCRITURA 
+      # otorgados al usuario "apps" (UID 568). De lo contrario, SQLite arrojará "Permission Denied".
+      - ./data:/app/data
+
+    # Resource limits (adjust to your server)
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+          cpus: "1.0"
+        reservations:
+          memory: 256m
+
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_ADMIN        # Required by Chromium sandbox in Docker
+
+    # Shared memory for Chromium (prevents crashes on heavy pages)
+    shm_size: '256mb'
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
