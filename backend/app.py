@@ -134,8 +134,8 @@ def _resolve_creds(req: SubmitRequest) -> Credentials:
 # ─── Endpoints ───────────────────────────────────────────────────────────────
 
 @app.get("/", include_in_schema=False)
-async def serve_index(user: str = Depends(verify_access)):
-    """Serves the frontend SPA, protected by Basic Auth"""
+async def serve_index():
+    """Serves the frontend SPA (login Overlay will handle auth internally)"""
     index = FRONTEND_DIR / "index.html"
     if not index.exists():
         return JSONResponse({"error": "Frontend not found."}, status_code=404)
