@@ -9,7 +9,7 @@ services:
 
     ports:
       # Puerto web expuesto al host (solo el necesario)
-      - "8080:8080"       
+      - "48080:8080"       
 
     environment:
       # ─── Variables a configurar en la UI de TrueNAS (Custom App) ───

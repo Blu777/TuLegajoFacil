@@ -36,21 +36,7 @@ def init_db():
         logger.error(f"🚨 CRITICAL ERROR: Fallo al abrir SQLite en {DB_PATH}. "
                      f"Asegúrate de que el Dataset de TrueNAS tenga permisos de ESCRITURA (ACL) "
                      f"para el usuario de la App. Detalle interno: {e}")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS entries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            work_date TEXT NOT NULL,
-            hours REAL NOT NULL,
-            template TEXT,
-            tasks TEXT,
-            schedule TEXT,
-            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    conn.close()
-    logger.info(f"Database initialized at {DB_PATH}")
+
 
 def add_entry(work_date: str, hours: float, template: str, tasks: str, schedule: str):
     conn = sqlite3.connect(DB_PATH)
