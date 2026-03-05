@@ -1,0 +1,120 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.82kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-alpine
+#2 DONE 0.3s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [builder 1/5] FROM docker.io/library/python:3.12-alpine@sha256:7747d47f92cfca63a6e2b50275e23dba8407c30d8ae929a88ddd49a5d3f2d331
+#4 resolve docker.io/library/python:3.12-alpine@sha256:7747d47f92cfca63a6e2b50275e23dba8407c30d8ae929a88ddd49a5d3f2d331 0.0s done
+#4 CACHED
+
+#5 [internal] load build context
+#5 transferring context: 478B done
+#5 DONE 0.0s
+
+#6 [builder 2/5] WORKDIR /install
+#6 CACHED
+
+#7 [builder 3/5] RUN apk add --no-cache build-base gcc libffi-dev
+#7 CACHED
+
+#8 [builder 4/5] COPY backend/requirements.txt .
+#8 CACHED
+
+#9 [builder 5/5] RUN pip install --no-cache-dir --prefix=/install/deps -r requirements.txt
+#9 2.003 Collecting fastapi==0.115.6 (from -r requirements.txt (line 1))
+#9 2.041   Downloading fastapi-0.115.6-py3-none-any.whl.metadata (27 kB)
+#9 2.080 Collecting uvicorn==0.32.1 (from -r requirements.txt (line 2))
+#9 2.094   Downloading uvicorn-0.32.1-py3-none-any.whl.metadata (6.6 kB)
+#9 2.130 ERROR: Could not find a version that satisfies the requirement playwright==1.49.1 (from versions: none)
+#9 2.193 
+#9 2.193 [notice] A new release of pip is available: 25.0.1 -> 26.0.1
+#9 2.193 [notice] To update, run: pip install --upgrade pip
+#9 2.194 ERROR: No matching distribution found for playwright==1.49.1
+#9 ERROR: process "/bin/sh -c pip install --no-cache-dir --prefix=/install/deps -r requirements.txt" did not complete successfully: exit code: 1
+
+#10 [stage-1 2/9] RUN apk add --no-cache     chromium     nss     freetype     harfbuzz     ca-certificates     ttf-freefont     git     tzdata
+#10 0.647 (  1/185) Installing libxau (1.0.12-r0)
+#10 0.655 (  2/185) Installing libmd (1.1.0-r0)
+#10 0.661 (  3/185) Installing libbsd (0.12.2-r0)
+#10 0.671 (  4/185) Installing libxdmcp (1.1.5-r1)
+#10 0.678 (  5/185) Installing libxcb (1.17.0-r1)
+#10 0.699 (  6/185) Installing libx11 (1.8.12-r1)
+#10 0.763 (  7/185) Installing libxext (1.3.6-r2)
+#10 0.771 (  8/185) Installing hwdata-pci (0.401-r0)
+#10 0.794 (  9/185) Installing libpciaccess (0.18.1-r1)
+#10 0.802 ( 10/185) Installing libdrm (2.4.131-r0)
+#10 0.822 ( 11/185) Installing libgcc (15.2.0-r2)
+#10 0.836 ( 12/185) Installing chromium-angle (144.0.7559.132-r4)
+#10 0.983 ( 13/185) Installing chromium-common (144.0.7559.132-r4)
+#10 1.008 ( 14/185) Installing libexpat (2.7.4-r0)
+#10 1.021 ( 15/185) Installing brotli-libs (1.2.0-r0)
+#10 1.059 ( 16/185) Installing libpng (1.6.55-r0)
+#10 1.074 ( 17/185) Installing freetype (2.14.1-r0)
+#10 1.098 ( 18/185) Installing fontconfig (2.17.1-r0)
+#10 1.117 ( 19/185) Installing libfontenc (1.1.8-r0)
+#10 1.125 ( 20/185) Installing mkfontscale (1.2.3-r1)
+#10 1.133 ( 21/185) Installing font-opensans (0_git20210927-r1)
+#10 1.206 ( 22/185) Installing libeconf (0.8.3-r0)
+#10 1.214 ( 23/185) Installing libblkid (2.41.2-r0)
+#10 1.230 ( 24/185) Installing libmount (2.41.2-r0)
+#10 1.248 ( 25/185) Installing pcre2 (10.47-r0)
+#10 1.275 ( 26/185) Installing glib (2.86.3-r0)
+#10 1.378 ( 27/185) Installing gobject-introspection (1.86.0-r0)
+#10 1.419 ( 28/185) Installing pkgconf (2.5.1-r0)
+#10 1.430 ( 29/185) Installing hicolor-icon-theme (0.18-r0)
+#10 1.509 ( 30/185) Installing libstdc++ (15.2.0-r2)
+#10 1.572 ( 31/185) Installing libxml2 (2.13.9-r0)
+#10 1.605 ( 32/185) Installing shared-mime-info (2.4-r6)
+#10 1.631 ( 33/185) Installing libjpeg-turbo (3.1.2-r0)
+#10 1.649 ( 34/185) Installing libsharpyuv (1.6.0-r0)
+#10 1.656 ( 35/185) Installing libwebp (1.6.0-r0)
+#10 1.683 ( 36/185) Installing zstd-libs (1.5.7-r2)
+#10 1.713 ( 37/185) Installing tiff (4.7.1-r0)
+#10 1.730 ( 38/185) Installing gdk-pixbuf (2.44.4-r0)
+#10 1.752 ( 39/185) Installing gtk-update-icon-cache (3.24.51-r0)
+#10 1.760 ( 40/185) Installing libxcomposite (0.4.6-r5)
+#10 1.767 ( 41/185) Installing libxfixes (6.0.2-r0)
+#10 1.775 ( 42/185) Installing libxrender (0.9.12-r0)
+#10 1.783 ( 43/185) Installing libxcursor (1.2.3-r0)
+#10 1.790 ( 44/185) Installing libxdamage (1.1.6-r5)
+#10 1.798 ( 45/185) Installing libxi (1.8.2-r0)
+#10 1.807 ( 46/185) Installing libxinerama (1.1.5-r4)
+#10 1.814 ( 47/185) Installing libxrandr (1.5.4-r1)
+#10 1.821 ( 48/185) Installing libatk-1.0 (2.58.3-r0)
+#10 1.832 ( 49/185) Installing dbus-libs (1.16.2-r1)
+#10 1.847 ( 50/185) Installing at-spi2-core-libs (2.58.3-r0)
+#10 1.861 ( 51/185) Installing mpdecimal (4.0.1-r0)
+#10 1.874 ( 52/185) Installing python3 (3.12.12-r0)
+#10 2.260 ( 53/185) Installing python3-pycache-pyc0 (3.12.12-r0)
+#10 CANCELED
+------
+ > [builder 5/5] RUN pip install --no-cache-dir --prefix=/install/deps -r requirements.txt:
+2.003 Collecting fastapi==0.115.6 (from -r requirements.txt (line 1))
+2.041   Downloading fastapi-0.115.6-py3-none-any.whl.metadata (27 kB)
+2.080 Collecting uvicorn==0.32.1 (from -r requirements.txt (line 2))
+2.094   Downloading uvicorn-0.32.1-py3-none-any.whl.metadata (6.6 kB)
+2.130 ERROR: Could not find a version that satisfies the requirement playwright==1.49.1 (from versions: none)
+2.193 
+2.193 [notice] A new release of pip is available: 25.0.1 -> 26.0.1
+2.193 [notice] To update, run: pip install --upgrade pip
+2.194 ERROR: No matching distribution found for playwright==1.49.1
+------
+Dockerfile:12
+--------------------
+  10 |     
+  11 |     COPY backend/requirements.txt .
+  12 | >>> RUN pip install --no-cache-dir --prefix=/install/deps -r requirements.txt
+  13 |     
+  14 |     
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c pip install --no-cache-dir --prefix=/install/deps -r requirements.txt" did not complete successfully: exit code: 1
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/8jd7tv9a6gqjka5yekaabm04r

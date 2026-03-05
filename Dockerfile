@@ -1,58 +1,58 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1: Builder
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.12-alpine AS builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /install
 
-# Dependencias de compilación para paquetes Python bajo Alpine
-RUN apk add --no-cache build-base gcc libffi-dev
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install/deps -r requirements.txt
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 2: Runtime (Alpine Lightweight)
+# Stage 2: Runtime (Debian Slim)
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
-LABEL org.opencontainers.image.description="Legajo Hours Automator - TrueNAS Alpine Build"
+LABEL org.opencontainers.image.description="Legajo Hours Automator - TrueNAS Debian Build"
 
-# ── Instalar Chromium nativo de Alpine ──
-# Instalar Chromium directamente de los repos de Alpine es muchísimo más
-# eficiente y seguro que usar los binarios de Microsoft en Alpine.
-RUN apk add --no-cache \
+# ── Install Chromium and Playwright deps via APT ──
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
-    nss \
-    freetype \
-    harfbuzz \
+    libnss3 \
+    libfreetype6 \
+    libharfbuzz0b \
     ca-certificates \
-    ttf-freefont \
-    git \
-    tzdata
+    fonts-freefont-ttf \
+    wget \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiar paquetes Python del builder
+# Copy python dependencies from builder
 COPY --from=builder /install/deps /usr/local
 
-# Configuración crucial para que Playwright use el Chromium de Alpine
+# Playwright config to use system Chromium
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
-# ── Seguridad Non-Root (Preparado para TrueNAS) ──
-# Usamos el UID 568 que es el usuario estándar 'apps' en TrueNAS Scale
-# Esto reduce enormemente problemas de Permission Denied al mapear volúmenes locales.
-RUN addgroup -g 568 apps && \
-    adduser -u 568 -G apps -s /bin/sh -D apps
+# ── Non-Root Security (TrueNAS apps user) ──
+# UID 568 is the standard 'apps' user on TrueNAS Scale
+RUN groupadd -g 568 apps && \
+    useradd -u 568 -g apps -s /bin/sh -m apps
 
 WORKDIR /app
 
-# Copiar código fuente
+# Copy source code
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 
-# Permisos
+# Permissions
 RUN chown -R apps:apps /app
 
 USER apps
