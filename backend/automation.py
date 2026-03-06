@@ -137,32 +137,43 @@ async def submit_entry(
         await asyncio.sleep(0.8)
         await _screenshot(page, f"{entry.date}_1_modal_open")
 
-        # 2. Seleccionar el template: forzar visibilidad y hacer click en el select2
-        select2_btn = page.locator("#communicationModalModal .modal-body a.select2-choice").first
-        await select2_btn.wait_for(state="attached", timeout=8000)
+        # 2. Seleccionar el template en el <select> nativo del modal
+        #    El modal muestra un <select> con "Seleccione la plantilla"
+        #    Usamos jQuery (disponible en la página) para seleccionar y disparar change
+        select_el = page.locator("#communicationModalModal select")
+        await select_el.wait_for(state="visible", timeout=8000)
+        await _screenshot(page, f"{entry.date}_2_select_visible")
         
-        # Forzar click via JavaScript en caso de que siga oculto por CSS
-        await page.evaluate("el => el.click()", await select2_btn.element_handle())
+        # Seleccionar la opción por texto visible y disparar change via jQuery
+        selected = await page.evaluate(f"""
+            (function() {{
+                var sel = document.querySelector('#communicationModalModal select');
+                if (!sel) return 'ERROR: select not found';
+                var opts = Array.from(sel.options);
+                var target = opts.find(o => o.text.trim().includes({repr(template_name)}));
+                if (!target) {{
+                    // fallback: partial match
+                    target = opts.find(o => o.text.trim().length > 0 && {repr(template_name)}.includes(o.text.trim().split(' ')[0]));
+                }}
+                if (!target) return 'ERROR: option not found. Options: ' + opts.map(o => o.text).join(' | ');
+                sel.value = target.value;
+                // Disparar change para que select2/la página renderice el formulario
+                $(sel).trigger('change');
+                sel.dispatchEvent(new Event('change', {{bubbles: true}}));
+                return 'OK: ' + target.text;
+            }})()
+        """)
+        logger.info(f"  Template selection result: {selected}")
+        if "ERROR" in str(selected):
+            raise Exception(f"No se pudo seleccionar la plantilla: {selected}")
         
-        # Input del select2 dentro del modal — único en ese contexto
-        search_input = page.locator("#communicationModalModal .modal-body input.select2-input")
-        await search_input.wait_for(state="visible", timeout=5000)
-        await _screenshot(page, f"{entry.date}_2_select2_open")
-        await search_input.fill("")
-        await search_input.type(template_name, delay=60)
-        await _screenshot(page, f"{entry.date}_3_typed_template")
-        
-        # Esperar resultado y confirmar
-        await page.wait_for_selector(".select2-results li:not(.select2-searching)", timeout=5000)
-        await _screenshot(page, f"{entry.date}_4_results_shown")
-        await page.keyboard.press("Enter")
-        await asyncio.sleep(0.3)
-        await _screenshot(page, f"{entry.date}_5_template_selected")
+        await asyncio.sleep(0.5)
+        await _screenshot(page, f"{entry.date}_3_template_selected")
         
         # 3. Esperar a que el HTML dinámico renderice los campos
-        await page.wait_for_selector("#communicationModalContainer .source-html input", timeout=10000)
+        await page.wait_for_selector("#communicationModalContainer .source-html input", timeout=12000)
         await asyncio.sleep(0.3)
-        await _screenshot(page, f"{entry.date}_6_fields_loaded")
+        await _screenshot(page, f"{entry.date}_4_fields_loaded")
 
         # 4. Llenar los campos dinámicos de la lista .source-html
 
