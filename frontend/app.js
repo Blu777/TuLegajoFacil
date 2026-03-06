@@ -265,14 +265,14 @@ function calcFormHours() {
   const templateVal = entryTemplate ? entryTemplate.value : "";
   const isFeriado = templateVal.toLowerCase().includes("feriado");
   let cat;
+  let s = entryStart ? entryStart.value : "";
+  let e = entryEnd ? entryEnd.value : "";
   
   if (isFeriado) {
     const fh = parseFloat(entryFeriadoHours.value) || 0;
     cat = { h50: 0, h100: fh, total: fh };
   } else {
     if (!entryStart || !entryEnd) return { h50: 0, h100: 0, total: 0 };
-    const s = entryStart.value;
-    const e = entryEnd.value;
     cat = calculateCategoryHours(entryDate.value, s, e, templateVal);
   }
 
@@ -297,7 +297,7 @@ function calcFormHours() {
   }
 
   // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
-  if (entryDate.value && s === "07:00" && e === "12:00" && cat.total === 5) {
+  if (!isFeriado && entryDate.value && s === "07:00" && e === "12:00" && cat.total === 5) {
     const [yy, mm, dd] = entryDate.value.split('-');
     const dateObj = new Date(yy, mm - 1, dd);
     if (dateObj.getDay() === 0) {
