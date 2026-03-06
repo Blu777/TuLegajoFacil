@@ -200,8 +200,8 @@ function calculateCategoryHours(dateStr, startStr, endStr, templateName) {
   let h50 = 0;
   let h100 = 0;
   
-  const [yy, mm, dd] = dateStr.split('-');
-  const dateObj = new Date(yy, mm - 1, dd);
+  // Usar T12:00:00 asegura que la fecha caiga a mediodía localmente y no se corra de día por la zona horaria
+  const dateObj = new Date(`${dateStr}T12:00:00`);
   const dayOfWeek = dateObj.getDay(); // 0 is Sunday, 6 is Saturday
   
   const isFeriado = templateName && templateName.toLowerCase().includes("feriado");
@@ -264,10 +264,8 @@ function calcFormHours() {
   }
 
   // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
-  // If template changes programmatically, recalculate.
   if (entryDate.value && s === "07:00" && e === "12:00" && cat.total === 5) {
-    const [yy, mm, dd] = entryDate.value.split('-');
-    const dateObj = new Date(yy, mm - 1, dd);
+    const dateObj = new Date(`${entryDate.value}T12:00:00`);
     if (dateObj.getDay() === 0) {
       if (entryTemplate.value !== "Autorización de horas extras TV Universal") {
          entryTemplate.value = "Autorización de horas extras TV Universal";
@@ -323,7 +321,8 @@ if(btnAddEntry) {
     });
 
     // Reset Form for convenience
-    const nextDay = new Date(yy, mm - 1, parseInt(dd) + 1);
+    const nextDay = new Date(`${dVal}T12:00:00`);
+    nextDay.setDate(nextDay.getDate() + 1);
     const nyyyy  = nextDay.getFullYear();
     const nmm    = String(nextDay.getMonth() + 1).padStart(2, "0");
     const ndd    = String(nextDay.getDate()).padStart(2, "0");
@@ -700,17 +699,46 @@ periodSelect.addEventListener("change", async (e) => {
             return;
         }
         
-        historyList.innerHTML = entries.map(e => `
+        historyList.innerHTML = entries.map(e => {
+            // Verificar si el backend nos devolvió hours50 y hours100.
+            // Si el backend aún no está enviando esto para registros viejos, lo estimamos con start_time="09:00"
+            let h50 = e.hours50;
+            let h100 = e.hours100;
+            const totalHoursInt = parseFloat(e.hours);
+
+            if (h50 === undefined || h100 === undefined) {
+                // Cálculo de respaldo para historial viejo
+                const cat = calculateCategoryHours(e.work_date, "09:00", "18:00", e.template);
+                // Ajustamos el resultado para que sume exactamente las e.hours usando un ratio:
+                if (cat.total > 0) {
+                  const ratio50 = cat.h50 / cat.total;
+                  h50 = parseFloat((totalHoursInt * ratio50).toFixed(1));
+                  h100 = parseFloat((totalHoursInt - h50).toFixed(1));
+                } else {
+                  h50 = totalHoursInt;
+                  h100 = 0;
+                }
+            }
+
+            const badge50 = h50 > 0 ? `<div class="mt-1"><span class="text-[0.65rem] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${h50}h (50%)</span></div>` : '';
+            const badge100 = h100 > 0 ? `<div class="mt-1"><span class="text-[0.65rem] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${h100}h (100%)</span></div>` : '';
+
+            return `
             <tr>
               <td><strong>${e.work_date}</strong></td>
-              <td>${e.hours} h</td>
+              <td>
+                <div class="font-bold text-[0.95rem] text-textPrimary">${totalHoursInt} h</div>
+                ${badge50}
+                ${badge100}
+              </td>
               <td>
                 <div style="font-size:0.85rem; font-weight: 500">${e.template}</div>
                 <div style="font-size:0.75rem; color: var(--text-muted)">${e.tasks} • ${e.schedule}</div>
               </td>
               <td style="font-size:0.8rem; color:var(--text-muted)">${new Date(e.submitted_at).toLocaleString('es-AR', {dateStyle: 'short', timeStyle: 'short'})}</td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     } catch(err) {
         showToast("Error cargando detalle", "error");
         console.error(err);
