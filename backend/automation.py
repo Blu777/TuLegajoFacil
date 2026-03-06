@@ -137,37 +137,37 @@ async def submit_entry(
         await asyncio.sleep(0.8)
         await _screenshot(page, f"{entry.date}_1_modal_open")
 
-        # 2. Seleccionar el template en el <select> nativo del modal
-        #    El modal muestra un <select> con "Seleccione la plantilla"
-        #    Usamos jQuery (disponible en la página) para seleccionar y disparar change
-        select_el = page.locator("#communicationModalModal select")
-        await select_el.wait_for(state="visible", timeout=8000)
+        # 2. Seleccionar el template
+        # Hay dos <select name="model"> en el modal:
+        #   - .model-choice-plantilla (display:none) → ignorar
+        #   - .model-choice (visible) → el correcto
+        # El select2-drop se renderiza en el <body>, fuera del modal.
+        # Usamos jQuery para definir el valor y disparar change (API oficial de select2).
+        select_el = page.locator(".model-choice select[name='model']")
+        await select_el.wait_for(state="attached", timeout=8000)
         await _screenshot(page, f"{entry.date}_2_select_visible")
         
-        # Seleccionar la opción por texto visible y disparar change via jQuery
         selected = await page.evaluate(f"""
             (function() {{
-                var sel = document.querySelector('#communicationModalModal select');
+                var sel = document.querySelector(".model-choice select[name='model']");
                 if (!sel) return 'ERROR: select not found';
                 var opts = Array.from(sel.options);
-                var target = opts.find(o => o.text.trim().includes({repr(template_name)}));
+                var target = opts.find(o => o.text.trim() === {repr(template_name)});
                 if (!target) {{
                     // fallback: partial match
-                    target = opts.find(o => o.text.trim().length > 0 && {repr(template_name)}.includes(o.text.trim().split(' ')[0]));
+                    target = opts.find(o => o.text.trim().includes({repr(template_name.split(' ')[0])}));
                 }}
-                if (!target) return 'ERROR: option not found. Options: ' + opts.map(o => o.text).join(' | ');
-                sel.value = target.value;
-                // Disparar change para que select2/la página renderice el formulario
-                $(sel).trigger('change');
-                sel.dispatchEvent(new Event('change', {{bubbles: true}}));
-                return 'OK: ' + target.text;
+                if (!target) return 'ERROR: option not found. Available: ' + opts.map(o=>o.text.trim()).filter(t=>t).join(' | ');
+                // Forma oficial para actualizar select2 programáticamente
+                $(sel).val(target.value).trigger('change');
+                return 'OK: ' + target.text.trim() + ' (value=' + target.value + ')';
             }})()
         """)
-        logger.info(f"  Template selection result: {selected}")
+        logger.info(f"  Template selection: {selected}")
         if "ERROR" in str(selected):
             raise Exception(f"No se pudo seleccionar la plantilla: {selected}")
         
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.6)
         await _screenshot(page, f"{entry.date}_3_template_selected")
         
         # 3. Esperar a que el HTML dinámico renderice los campos
