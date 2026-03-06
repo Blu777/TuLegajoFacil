@@ -150,6 +150,7 @@ btnAppLogin.addEventListener("click", async () => {
       if(res.ok) {
           showToast("¡Bienvenido!", "success");
           inputAppPass.value = "";
+          await checkAuth();
           if (entriesList.length === 0) {
               updateSummary();
           }
