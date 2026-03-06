@@ -184,9 +184,11 @@ async def run_session(
     """
     all_ok = True
 
+    import os
     async with async_playwright() as pw:
         browser: Browser = await pw.chromium.launch(
             headless=True,
+            executable_path=os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"),
             args=["--no-sandbox", "--disable-dev-shm-usage"],  # Required in Docker
         )
         context: BrowserContext = await browser.new_context(
