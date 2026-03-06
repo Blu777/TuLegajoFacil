@@ -50,6 +50,15 @@ const entryTemplate  = document.getElementById("entry-template");
 const entryTasks     = document.getElementById("entry-tasks");
 const entrySchedule  = document.getElementById("entry-schedule");
 
+// Feriado Fields
+const groupStandardTime    = document.getElementById("group-standard-time");
+const groupStandardDetails = document.getElementById("group-standard-details");
+const groupFeriadoFields   = document.getElementById("group-feriado-fields");
+const entrySector          = document.getElementById("entry-sector");
+const entryLocation        = document.getElementById("entry-location");
+const entryFeriadoHours    = document.getElementById("entry-feriado-hours");
+const entryReason          = document.getElementById("entry-reason");
+
 // History / Tabs
 const tabSubmit = document.getElementById("tab-submit");
 const tabHistory = document.getElementById("tab-history");
@@ -251,13 +260,22 @@ function calculateCategoryHours(dateStr, startStr, endStr, templateName) {
 }
 
 function calcFormHours() {
-  if (!entryStart || !entryEnd || !entryHoursLbl || !entryDate) return { h50: 0, h100: 0, total: 0 };
+  if (!entryDate || !entryHoursLbl) return { h50: 0, h100: 0, total: 0 };
   
-  const s = entryStart.value;
-  const e = entryEnd.value;
   const templateVal = entryTemplate ? entryTemplate.value : "";
+  const isFeriado = templateVal.toLowerCase().includes("feriado");
+  let cat;
   
-  const cat = calculateCategoryHours(entryDate.value, s, e, templateVal);
+  if (isFeriado) {
+    const fh = parseFloat(entryFeriadoHours.value) || 0;
+    cat = { h50: 0, h100: fh, total: fh };
+  } else {
+    if (!entryStart || !entryEnd) return { h50: 0, h100: 0, total: 0 };
+    const s = entryStart.value;
+    const e = entryEnd.value;
+    cat = calculateCategoryHours(entryDate.value, s, e, templateVal);
+  }
+
   entryHoursLbl.textContent = cat.total.toFixed(1);
   
   if (entryBadge50) {
@@ -294,28 +312,68 @@ function calcFormHours() {
   return cat;
 }
 
+function handleTemplateChange() {
+  const isFeriado = entryTemplate.value.toLowerCase().includes("feriado");
+  if (isFeriado) {
+    groupStandardTime.classList.add("hidden");
+    groupStandardDetails.classList.add("hidden");
+    groupFeriadoFields.classList.remove("hidden");
+    groupFeriadoFields.classList.add("flex");
+  } else {
+    groupStandardTime.classList.remove("hidden");
+    groupStandardDetails.classList.remove("hidden");
+    groupFeriadoFields.classList.add("hidden");
+    groupFeriadoFields.classList.remove("flex");
+  }
+  calcFormHours();
+}
+
 if(entryStart) entryStart.addEventListener("input", calcFormHours);
 if(entryEnd) entryEnd.addEventListener("input", calcFormHours);
 if(entryDate) entryDate.addEventListener("input", calcFormHours);
-if(entryTemplate) entryTemplate.addEventListener("change", calcFormHours);
+if(entryTemplate) entryTemplate.addEventListener("change", handleTemplateChange);
+if(entryFeriadoHours) entryFeriadoHours.addEventListener("input", calcFormHours);
 
 if(btnAddEntry) {
   btnAddEntry.addEventListener("click", () => {
     const dVal = entryDate.value;
-    const sVal = entryStart.value;
-    const eVal = entryEnd.value;
     const cat = calcFormHours();
+    const isFeriado = entryTemplate.value.toLowerCase().includes("feriado");
     
-    if (!dVal || !sVal || !eVal) {
-      showToast("⚠ Completá fecha y horarios.", "warning");
-      return;
+    let sVal, eVal, tasksDesc, habitualSchedule;
+    
+    if (isFeriado) {
+      if (!dVal || !entryFeriadoHours.value) {
+        showToast("⚠ Completá la fecha y cantidad de horas.", "warning");
+        return;
+      }
+      if (!entrySector.value.trim() || !entryLocation.value.trim() || !entryReason.value.trim()) {
+        showToast("⚠ Completá sector, lugar y motivo.", "warning");
+        return;
+      }
+      // Feriados doesn't technically use start/end times in the form, substitute with generic full shift blocks or N/A
+      sVal = "00:00"; 
+      eVal = "00:00"; 
+      // Map new Feriado fields cleanly into our historical DB architecture
+      tasksDesc = `Motivo: ${entryReason.value.trim()}`;
+      habitualSchedule = `Sector: ${entrySector.value.trim()} - Lugar: ${entryLocation.value.trim()}`;
+    } else {
+      sVal = entryStart.value;
+      eVal = entryEnd.value;
+      if (!dVal || !sVal || !eVal) {
+        showToast("⚠ Completá fecha y horarios.", "warning");
+        return;
+      }
+      if (!entryTasks.value.trim() || !entrySchedule.value.trim()) {
+        showToast("⚠ Completá las tareas y horario habitual.", "warning");
+        return;
+      }
+      tasksDesc = entryTasks.value.trim();
+      habitualSchedule = entrySchedule.value.trim();
     }
+    
     if (cat.total < 0.5 || cat.total > 24) {
       showToast("⚠ Horas inválidas.", "warning");
-      return;
-    }
-    if (!entryTasks.value.trim() || !entrySchedule.value.trim()) {
-      showToast("⚠ Completá las tareas y horario habitual.", "warning");
       return;
     }
 
@@ -332,8 +390,8 @@ if(btnAddEntry) {
       hours50: cat.h50,
       hours100: cat.h100,
       template_name: entryTemplate.value,
-      tasks_desc: entryTasks.value.trim(),
-      habitual_schedule: entrySchedule.value.trim()
+      tasks_desc: tasksDesc,
+      habitual_schedule: habitualSchedule
     });
 
     // Reset Form for convenience
@@ -344,7 +402,17 @@ if(btnAddEntry) {
     const nmm    = String(nextDay.getMonth() + 1).padStart(2, "0");
     const ndd    = String(nextDay.getDate()).padStart(2, "0");
     entryDate.value = `${nyyyy}-${nmm}-${ndd}`;
-    entryTasks.value = ""; // Clear tasks for next entry
+    
+    // Clear fields
+    if (isFeriado) {
+      entryFeriadoHours.value = "";
+      entrySector.value = "";
+      entryLocation.value = "";
+      entryReason.value = "";
+    } else {
+      entryTasks.value = ""; 
+    }
+    
     showToast("✅ Registro añadido.", "success");
 
     renderEntries();
