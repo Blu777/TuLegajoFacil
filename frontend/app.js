@@ -605,7 +605,11 @@ function openPreview() {
       const dateVal  = tr.querySelector("input[type=date]")?.value  || "";
       const startVal = tr.querySelector(`input[id^="start-"]`)?.value || "";
       const endVal   = tr.querySelector(`input[id^="end-"]`)?.value   || "";
+<<<<<<< HEAD
       const hoursVal = parseFloat(tr.querySelector(`input[type="number"]`)?.value || "0") || "";
+=======
+      const hoursVal = tr.querySelector(`input[type="number"]`)?.value || "";
+>>>>>>> 9dc1f6d2ad2d07e86034b237e65bb16eb33e2dbc
 
       // Format date as DD/MM/YYYY
       let dateFormatted = dateVal;
