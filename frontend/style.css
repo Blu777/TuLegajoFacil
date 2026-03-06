@@ -33,7 +33,15 @@
 /* ─── Reset & Base ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  /* Punto 4: barrera de seguridad a nivel raíz para cualquier elemento desbordante */
+  overflow-x: hidden;
+  /* Punto 2: nunca usar width:100vw — el html/body ocupan el ancho disponible */
+  width: 100%;
+  max-width: 100%;
+}
 
 body {
   font-family: var(--font);
@@ -70,9 +78,13 @@ body {
 .container {
   position: relative;
   z-index: 1;
+  /* Punto 2: width:100% (NO 100vw) + max-width tope desktop */
+  width: 100%;
   max-width: 1140px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
+  /* Punto 1: box-sizing ya lo cubre el reset, pero lo reforzamos aquí */
+  box-sizing: border-box;
 }
 
 .grid-layout {
@@ -172,9 +184,19 @@ img, video, iframe, svg { max-width: 100%; height: auto; }
 
 .card-body { padding: 1.25rem 1.4rem; }
 
+/* Punto 3: el contenedor flex de los tabs debe hacer wrap en pantallas chicas */
+/* Esto se aplica por encima del style inline del nav */
+.tabs-nav .card-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 /* Tabs */
 .tab-btn {
   flex: 1;
+  /* Punto 3: min-width:0 evita que el botón fuerce el ancho del contenedor */
+  min-width: 0;
   background: transparent;
   color: var(--text-muted);
   border: none;
@@ -185,6 +207,7 @@ img, video, iframe, svg { max-width: 100%; height: auto; }
   font-weight: 500;
   cursor: pointer;
   transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
 }
 .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
 .tab-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 10px var(--accent-glow); }
@@ -464,8 +487,16 @@ td input[type="number"] { padding: 0.38rem 0.6rem; font-size: 0.84rem; }
   .brand h1 { font-size: 1.3rem; }
   .status-badge { font-size: 0.75rem; align-self: center; }
 
-  /* Tabs: full width */
-  .tab-btn { padding: 0.85rem 0.5rem; font-size: 0.88rem; }
+  /* Tabs: full width, apilados si no caben */
+  .tab-btn {
+    padding: 0.85rem 0.5rem;
+    font-size: 0.88rem;
+    flex: 1 1 45%; /* Punto 3: permite que wrappeen a una nueva línea si no caben */
+    min-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   /* Cards */
   .card { border-radius: var(--radius-md); }
