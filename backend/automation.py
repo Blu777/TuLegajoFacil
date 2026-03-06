@@ -130,13 +130,13 @@ async def submit_entry(
         # Forzar click via JavaScript en caso de que siga oculto por CSS
         await page.evaluate("el => el.click()", await select2_btn.element_handle())
         
-        # El input del select2 abierto tiene aria-expanded="true" — selector único
-        search_input = page.locator("input[aria-expanded='true']")
+        # Input del select2 dentro del modal — único en ese contexto
+        search_input = page.locator("#communicationModalModal .modal-body input.select2-input")
         await search_input.wait_for(state="visible", timeout=5000)
-        await search_input.fill("")  # limpiar primero
+        await search_input.fill("")
         await search_input.type(template_name, delay=60)
         
-        # Esperar a que aparezca al menos un resultado antes de confirmar
+        # Esperar resultado y confirmar
         await page.wait_for_selector(".select2-results li:not(.select2-searching)", timeout=5000)
         await page.keyboard.press("Enter")
         
