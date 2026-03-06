@@ -120,9 +120,9 @@
               <div class="field">
                 <label for="input-template">Tipo de Carga</label>
                 <select id="input-template" class="form-select">
-                  <option value="Autorización de horas extras TV Universal">TV Universal - Horas Extras</option>
-                  <option value="Autorización de horas extras Unife">Unife - Horas Extras</option>
-                  <option value="Autorización de trabajo Feriado">Feriado - Autorización de trabajo</option>
+                  <option value="Autorización Feriados TV">📅 Feriados TV</option>
+                  <option value="Autorización de horas extras TV Universal">📺 TV Universal - Horas Extras</option>
+                  <option value="Autorización de horas extras Unife">🎓 Unife - Horas Extras</option>
                 </select>
               </div>
               <div class="field">
@@ -192,6 +192,9 @@
             </div>
             <div class="entries-footer">
               <button id="btn-clear-all" class="btn btn-ghost btn-sm" type="button" style="display:none;">🗑 Borrar todo</button>
+              <button id="btn-preview" class="btn btn-secondary" type="button" disabled>
+                👁 Previsualizar
+              </button>
               <button id="btn-submit" class="btn btn-primary" type="button" disabled>
                 <span class="btn-spinner" id="submit-spinner" style="display:none;"></span>
                 <span id="submit-label">⚡ Enviar todo al Legajo</span>
@@ -255,6 +258,74 @@
     </div> <!-- END VIEW: HISTORY -->
 
   </main>
+
+  <!-- ── PREVIEW MODAL ── -->
+  <div id="preview-overlay" style="display:none; position:fixed; inset:0; z-index:8000; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;">
+    <div id="preview-modal" style="background:#fff; color:#333; border-radius:8px; width:100%; max-width:660px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); font-family: Arial, sans-serif; font-size:14px;">
+      
+      <!-- Header -->
+      <div style="background:#f8f8f8; border-bottom:1px solid #ddd; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; border-radius:8px 8px 0 0;">
+        <span style="color:#4a7c59; font-weight:600; font-size:15px;">✈ Enviar comunicación</span>
+        <button onclick="closePreview()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#888; line-height:1;">&times;</button>
+      </div>
+
+      <!-- Content -->
+      <div style="padding:20px 24px;">
+        
+        <!-- Asunto -->
+        <div style="margin-bottom:16px;">
+          <div style="color:#4a7c59; font-weight:700; margin-bottom:6px; font-size:14px;">Asunto</div>
+          <div id="pv-asunto" style="background:#f0f0f0; border:1px solid #ddd; border-radius:4px; padding:8px 12px; font-size:14px; color:#333;"></div>
+        </div>
+
+        <!-- Mensaje box -->
+        <div style="border:2px dashed #ccc; border-radius:4px; padding:18px; margin-bottom:16px;">
+          <div style="color:#4a7c59; font-weight:700; margin-bottom:14px; font-size:14px;">Mensaje</div>
+          
+          <div style="margin-bottom:10px;">
+            <span style="color:#c0392b; font-size:13px;">Nombre: </span>
+            <span id="pv-nombre" style="font-size:13px;"></span>
+          </div>
+
+          <div style="margin-bottom:12px; font-size:13px;">
+            Solicito autorización para realizar la siguiente cantidad de horas extras:
+          </div>
+          
+          <!-- Entry rows preview -->
+          <div id="pv-entries-container"></div>
+
+          <!-- Static fields -->
+          <div style="margin-top:14px;">
+            <div style="font-size:13px; margin-bottom:4px; color:#c0392b;">Tareas a realizar:</div>
+            <div id="pv-tasks" style="border:1px solid #ccc; border-radius:3px; padding:6px 10px; min-height:28px; font-size:13px; background:#fefefe;"></div>
+          </div>
+          <div style="margin-top:12px;">
+            <div style="font-size:13px; margin-bottom:4px; color:#c0392b;">Horario Laboral habitual:</div>
+            <div id="pv-schedule" style="border:1px solid #ccc; border-radius:3px; padding:6px 10px; min-height:28px; font-size:13px; background:#fefefe;"></div>
+          </div>
+
+          <!-- Dropdowns (always NO) -->
+          <div style="margin-top:14px; font-size:13px;">¿Finaliza fuera de su domicilio laboral?</div>
+          <div style="margin-top:4px; display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:4px; padding:4px 10px; font-size:13px; background:#fff; min-width:130px;">NO <span style="margin-left:auto;">▾</span></div>
+
+          <div style="margin-top:12px; font-size:13px;">¿El trabajo a realizar requiere pasar la noche fuera de su domicilio?</div>
+          <div style="margin-top:4px; display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:4px; padding:4px 10px; font-size:13px; background:#fff; min-width:130px;">NO <span style="margin-left:auto;">▾</span></div>
+        </div>
+
+        <!-- Attachment notice -->
+        <div style="background:#e8f4fd; border:1px solid #b8d4ea; border-radius:4px; padding:8px 12px; font-size:12px; color:#555; margin-bottom:12px;">
+          ⚠ Tamaño máximo de archivo permitido: 50MB
+        </div>
+        <div style="font-size:20px;">📎</div>
+      </div>
+
+      <!-- Footer buttons -->
+      <div style="border-top:1px solid #ddd; padding:12px 20px; display:flex; gap:10px; justify-content:flex-end; background:#fafafa; border-radius:0 0 8px 8px;">
+        <div style="font-size:11px; color:#888; align-self:center; margin-right:auto;">Vista previa — sólo lectura</div>
+        <button onclick="closePreview()" style="background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:8px 18px; font-size:13px; cursor:pointer; font-weight:600;">✕ Cerrar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/static/app.js"></script>
   <script>

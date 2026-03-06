@@ -105,7 +105,8 @@ async def submit_entry(
     entry: HoursEntry, 
     template_name: str,
     tasks_desc: str,
-    habitual_schedule: str
+    habitual_schedule: str,
+    password: str = ""
 ) -> SubmitResult:
     """
     Fill and submit a single overtime hours entry through the modal workflow.
@@ -115,19 +116,29 @@ async def submit_entry(
 
         # 1. Hacer click en "Enviar" para abrir modal
         await page.click("a.new-communication")
-        await page.wait_for_selector("#communicationModalModal", timeout=5000)
+        
+        # Esperar a que el modal esté completamente visible (animación terminada)
+        await page.wait_for_selector("#communicationModalModal", state="visible", timeout=10000)
+        
+        # Pequeño delay para que la animación de apertura termine y el select2 sea interactuable
+        await asyncio.sleep(0.8)
 
-        # 2. Seleccionar el template dinámico: busca el dropdown visible dentro del modal
+        # 2. Seleccionar el template: forzar visibilidad y hacer click en el select2
         select2_btn = page.locator("#communicationModalModal .modal-body a.select2-choice").first
-        await select2_btn.wait_for(state="visible", timeout=8000)
-        await select2_btn.click()
+        await select2_btn.wait_for(state="attached", timeout=8000)
+        
+        # Forzar click via JavaScript en caso de que siga oculto por CSS
+        await page.evaluate("el => el.click()", await select2_btn.element_handle())
         
         # Escribir para filtrar y dar enter
+        await page.wait_for_selector(".select2-search input", state="visible", timeout=5000)
         await page.fill(".select2-search input", template_name)
+        await asyncio.sleep(0.4)
         await page.keyboard.press("Enter")
         
-        # 3. Esperar a que el HTML dinámico rinda los campos
+        # 3. Esperar a que el HTML dinámico renderice los campos
         await page.wait_for_selector("#communicationModalContainer .source-html input", timeout=10000)
+        await asyncio.sleep(0.3)
 
         # 4. Llenar los campos dinámicos de la lista .source-html
 
@@ -149,11 +160,25 @@ async def submit_entry(
         # Campo 6: Horario Habitual
         await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(5)", habitual_schedule)
 
-        # 5. Enviar el formulario
+        # 5. Enviar el formulario (abre el diálogo de firma con contraseña)
         await page.click("button.sign-send")
+        
+        # 6. Manejar el prompt de contraseña que aparece al firmar
+        #    TuLegajo pide reautenticación antes de confirmar el envío
+        try:
+            sign_pass_input = page.locator("input[type='password']").last
+            await sign_pass_input.wait_for(state="visible", timeout=5000)
+            await sign_pass_input.fill(password)
+            # Buscar el botón de confirmar firma (puede ser "Aceptar", "Confirmar", "Firmar", etc.)
+            confirm_btn = page.locator("button:has-text('Aceptar'), button:has-text('Confirmar'), button:has-text('Firmar'), button[type='submit']").last
+            await confirm_btn.wait_for(state="visible", timeout=4000)
+            await confirm_btn.click()
+            logger.info("  ✓ Firma confirmada con contraseña.")
+        except Exception as sign_exc:
+            logger.warning(f"  No se encontró prompt de contraseña (puede ser normal): {sign_exc}")
 
-        # 6. Esperar a que el modal se cierre o haya un mensaje de éxito
-        await page.wait_for_selector("#communicationModalModal", state="hidden", timeout=15000)
+        # 7. Esperar a que el modal se cierre o haya un mensaje de éxito
+        await page.wait_for_selector("#communicationModalModal", state="hidden", timeout=20000)
 
         logger.info(f"  ✓ Entry {entry.date} submitted successfully.")
         return SubmitResult(entry=entry, success=True, message="Enviado correctamente.")
@@ -167,6 +192,7 @@ async def submit_entry(
         except:
             pass
         return SubmitResult(entry=entry, success=False, message=msg)
+
 
 
 # ─── Main session orchestrator ───────────────────────────────────────────────
@@ -213,7 +239,10 @@ async def run_session(
 
             # 3. Submit each entry
             for entry in entries:
-                result = await submit_entry(page, entry, template_name, tasks_desc, habitual_schedule)
+                result = await submit_entry(
+                    page, entry, template_name, tasks_desc, habitual_schedule,
+                    password=creds.password  # ← pass password for signing step
+                )
                 status = "success" if result.success else "error"
                 job_log.append({"type": status, "msg": result.message})
                 if result.success:
@@ -242,3 +271,4 @@ async def run_session(
         "msg": "🏁 Proceso finalizado." + (" Todos los registros enviados." if all_ok else " Algunos registros fallaron."),
     })
     return all_ok
+
