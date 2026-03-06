@@ -608,8 +608,11 @@ function openPreview() {
   } else {
     rows.forEach((tr, idx) => {
       const dateVal  = tr.querySelector("input[type=date]")?.value  || "";
-      const startVal = tr.querySelector(`input[id^="start-"]`)?.value || "";
-      const endVal   = tr.querySelector(`input[id^="end-"]`)?.value   || "";
+      const startRaw = tr.querySelector(`input[id^="start-"]`)?.value || "";
+      const endRaw   = tr.querySelector(`input[id^="end-"]`)?.value   || "";
+      // Solo el número de hora, sin minutos (igual que envía el bot: "07:00" → "7")
+      const startVal = startRaw ? String(parseInt(startRaw.split(":")[0], 10)) : "";
+      const endVal   = endRaw   ? String(parseInt(endRaw.split(":")[0],   10)) : "";
       const hoursVal = parseFloat(tr.querySelector(`input[type="number"]`)?.value || "0") || "";
 
       // Format date as DD/MM/YYYY
