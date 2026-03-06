@@ -101,6 +101,11 @@ async function checkAuth() {
 }
 
 (async function init() {
+  // Intentar auto-login silencioso (solo funciona si APP_AUTO_LOGIN=true en el servidor)
+  try {
+    await fetch("/api/auth/auto-login");
+  } catch(_) {}
+
   const isAuth = await checkAuth();
   if (isAuth) {
     // Add one default row to get the user started

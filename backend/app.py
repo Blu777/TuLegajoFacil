@@ -192,8 +192,36 @@ async def app_logout(response: Response):
 @app.get("/api/health")
 async def health():
     # Health check remains open for Docker orchestrators
-    # We never expose credentials in the API
-    return {"status": "ok", "legajo_url": LEGAJO_URL, "auth_enabled": True}
+    env_creds = get_env_credentials()
+    return {
+        "status": "ok",
+        "legajo_url": LEGAJO_URL,
+        "auth_enabled": True,
+        "env_creds": env_creds is not None,  # frontend uses this to hide cred fields
+    }
+
+
+@app.get("/api/auth/auto-login")
+async def auto_login(response: Response):
+    """
+    Auto-login endpoint: if APP_AUTO_LOGIN=true is set in env vars,
+    sets a session cookie automatically so the GUI overlay is skipped.
+    Useful when running on a trusted private network (e.g. TrueNAS).
+    """
+    auto = os.getenv("APP_AUTO_LOGIN", "false").lower() == "true"
+    if not auto:
+        raise HTTPException(status_code=403, detail="Auto-login not enabled (set APP_AUTO_LOGIN=true)")
+    expires = datetime.now(timezone.utc) + timedelta(days=30)
+    token = jwt.encode({"user": APP_USERNAME, "exp": expires}, SESSION_SECRET, algorithm="HS256")
+    response.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        max_age=30 * 24 * 60 * 60
+    )
+    return {"success": True, "message": "Auto-login OK"}
 
 
 @app.post("/api/test-login")

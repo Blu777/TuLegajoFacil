@@ -130,11 +130,11 @@ async def submit_entry(
         # Forzar click via JavaScript en caso de que siga oculto por CSS
         await page.evaluate("el => el.click()", await select2_btn.element_handle())
         
-        # Escribir para filtrar — usar el dropdown activo, no el primero de la página
-        # .select2-drop-active es el dropdown que está abierto actualmente
-        await page.wait_for_selector(".select2-drop-active .select2-search input", state="visible", timeout=5000)
-        await page.fill(".select2-drop-active .select2-search input", template_name)
-        await asyncio.sleep(0.4)
+        # Escribir para filtrar — el input queda enfocado al abrir el dropdown
+        # Usamos keyboard.type para no depender de encontrar el input por selector
+        await asyncio.sleep(0.5)
+        await page.keyboard.type(template_name, delay=50)
+        await asyncio.sleep(0.3)
         await page.keyboard.press("Enter")
         
         # 3. Esperar a que el HTML dinámico renderice los campos
