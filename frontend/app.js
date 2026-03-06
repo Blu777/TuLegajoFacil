@@ -130,6 +130,8 @@ async function checkAuth() {
   const mm    = String(today.getMonth() + 1).padStart(2, "0");
   const dd    = String(today.getDate()).padStart(2, "0");
   if(entryDate) entryDate.value = `${yyyy}-${mm}-${dd}`;
+  // Force empty template on page load (browser cache can restore last selected value)
+  if(entryTemplate) { entryTemplate.value = ""; handleTemplateChange(); }
 
   // Evaluate initial hours
   calcFormHours();
@@ -359,7 +361,7 @@ if(entryFeriadoHours) entryFeriadoHours.addEventListener("input", calcFormHours)
 const presetDomingo = document.getElementById("preset-domingo");
 if (presetDomingo) {
   presetDomingo.addEventListener("click", () => {
-    // Find the exact option value for TV Universal (matches by text to avoid encoding issues)
+    // Find the TV Universal option by text to avoid encoding issues
     const tvUniversalOption = Array.from(entryTemplate.options).find(
       opt => opt.textContent.includes("TV Universal")
     );
@@ -367,14 +369,17 @@ if (presetDomingo) {
       entryTemplate.value = tvUniversalOption.value;
     }
     
+    // Call handleTemplateChange directly (shows standard fields, hides Feriado)
+    handleTemplateChange();
+    
+    // Now set the time and detail fields
     entryStart.value = "07:00";
     entryEnd.value = "12:00";
     entryTasks.value = "Opero sonido para PGM Nuestro Tiempo y reunion Univer";
     entrySchedule.value = "No aplica";
 
-    // Fire events so the UI updates (field visibility + live hour calc)
-    entryTemplate.dispatchEvent(new Event("change"));
-    entryStart.dispatchEvent(new Event("input"));
+    // Trigger the live hour calculation directly
+    calcFormHours();
   });
 }
 
