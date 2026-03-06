@@ -346,6 +346,14 @@ function renderEntries() {
     entriesListContainer.style.display = "flex";
     
     entriesList.forEach((entry, idx) => {
+      // BACKWARD COMPATIBILITY: If an old entry lacks hours50/hours100, calculate and backfill it.
+      if (typeof entry.hours50 === 'undefined' || typeof entry.hours100 === 'undefined') {
+        const cat = calculateCategoryHours(entry.date, entry.start_time, entry.end_time, entry.template_name);
+        entry.hours50 = cat.h50;
+        entry.hours100 = cat.h100;
+        if (!entry.hours) entry.hours = cat.total;
+      }
+
       const templateBadge = entry.template_name.includes("Unife") ? "bg-[#8b5cf6]/20 text-[#c4b5fd] border-[#8b5cf6]/30" :
                             entry.template_name.includes("Feriados") ? "bg-[#f59e0b]/20 text-[#fcd34d] border-[#f59e0b]/30" :
                             "bg-info/20 text-[#93c5fd] border-info/30";
@@ -450,7 +458,7 @@ btnTestLogin.addEventListener("click", async () => {
     const res  = await fetch("/api/test-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...getCredentials(), entries: [{ date: "2026-01-01", hours: 1 }] }),
+      body: JSON.stringify({ ...getCredentials(), entries: [{ date: "2026-01-01", hours: 1, hours50: 1, hours100: 0 }] }),
     });
     const data = await res.json();
     if (res.ok) {
