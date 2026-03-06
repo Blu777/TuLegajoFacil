@@ -205,12 +205,13 @@ function addRow() {
       tr.querySelector(`input[id^="hours-"]`).value = diff.toFixed(1);
     }
     
-    // Evaluate Sunday Shift Condition
+    // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
     const dVal = tr.querySelector(`input[id^="date-"]`).value;
     if (dVal && s === "07:00" && e === "12:00" && diff === 5) {
       const [yy, mm, dd] = dVal.split('-');
       const dateObj = new Date(yy, mm - 1, dd);
       if (dateObj.getDay() === 0) {
+        document.getElementById("input-template").value = "Autorización de horas extras TV Universal";
         document.getElementById("input-tasks").value = "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
         document.getElementById("input-schedule").value = "No aplica";
       }
@@ -256,6 +257,7 @@ function updateUI() {
   emptyState.classList.toggle("visible", !hasRows);
   btnClearAll.style.display = hasRows ? "inline-flex" : "none";
   btnSubmit.disabled = !hasRows || isRunning;
+  if (btnPreview) btnPreview.disabled = !hasRows || isRunning;
 }
 
 function updateSummary() {
@@ -569,3 +571,92 @@ periodSelect.addEventListener("change", async (e) => {
         console.error(err);
     }
 });
+
+// ─── PREVIEW MODAL ────────────────────────────────────────────────────────────
+const btnPreview     = document.getElementById("btn-preview");
+const previewOverlay = document.getElementById("preview-overlay");
+
+btnPreview.addEventListener("click", openPreview);
+
+function openPreview() {
+  // ── Asunto = template name (selected option text)
+  const templateSel = document.getElementById("input-template");
+  const templateVal = templateSel.value;
+  document.getElementById("pv-asunto").textContent = templateVal;
+
+  // ── Nombre: use username field or env-creds label
+  const nombreEl = document.getElementById("pv-nombre");
+  const userVal  = (document.getElementById("input-user")?.value || "").trim();
+  nombreEl.textContent = userVal || "— (credenciales desde entorno) —";
+
+  // ── Tareas y Horario
+  document.getElementById("pv-tasks").textContent    = document.getElementById("input-tasks").value.trim()    || "—";
+  document.getElementById("pv-schedule").textContent = document.getElementById("input-schedule").value.trim() || "—";
+
+  // ── Entry rows
+  const container = document.getElementById("pv-entries-container");
+  container.innerHTML = "";
+
+  const rows = entriesBody.querySelectorAll("tr");
+  if (rows.length === 0) {
+    container.innerHTML = "<p style='color:#999; font-size:13px;'>Sin registros cargados.</p>";
+  } else {
+    rows.forEach((tr, idx) => {
+      const dateVal  = tr.querySelector("input[type=date]")?.value  || "";
+      const startVal = tr.querySelector(`input[id^="start-"]`)?.value || "";
+      const endVal   = tr.querySelector(`input[id^="end-"]`)?.value   || "";
+      const hoursVal = tr.querySelector(`input[type="number"]`)?.value || "";
+
+      // Format date as DD/MM/YYYY
+      let dateFormatted = dateVal;
+      if (dateVal) {
+        const [yy, mm, dd] = dateVal.split("-");
+        dateFormatted = `${dd}/${mm}/${yy}`;
+      }
+
+      const block = document.createElement("div");
+      block.style.cssText = "border:1px solid #e0e0e0; border-radius:5px; padding:12px 14px; margin-bottom:10px; background:#fafafa;";
+      block.innerHTML = `
+        <div style="font-size:11px; font-weight:700; color:#4a7c59; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Entrada ${idx + 1}</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">Cantidad de horas extras:</div>
+            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block; min-width:50px;">${hoursVal}</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">el día:</div>
+            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block;">${dateFormatted}</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">Comprendidas entre las:</div>
+            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block;">${startVal}</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">y las:</div>
+            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block;">${endVal}</div>
+          </div>
+        </div>`;
+      container.appendChild(block);
+    });
+  }
+
+  // Show modal
+  previewOverlay.style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+window.closePreview = function() {
+  previewOverlay.style.display = "none";
+  document.body.style.overflow = "";
+};
+
+// Close on outside click
+previewOverlay.addEventListener("click", (e) => {
+  if (e.target === previewOverlay) closePreview();
+});
+
+// Close on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && previewOverlay.style.display === "flex") closePreview();
+});
+
