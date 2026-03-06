@@ -337,44 +337,71 @@ if(entryFeriadoHours) entryFeriadoHours.addEventListener("input", calcFormHours)
 if(btnAddEntry) {
   btnAddEntry.addEventListener("click", () => {
     const dVal = entryDate.value;
-    const cat = calcFormHours();
-    const isFeriado = entryTemplate.value.toLowerCase().includes("feriado");
+    const templateVal = entryTemplate.value;
+    const isFeriado = templateVal.toLowerCase().includes("feriado");
     
+    let cat;
     let sVal, eVal, tasksDesc, habitualSchedule;
     
+    // Validar siempre la fecha primero
+    if (!dVal) {
+      alert("⚠ Por favor, completá la fecha de trabajo.");
+      return;
+    }
+
     if (isFeriado) {
-      if (!dVal || !entryFeriadoHours.value) {
-        showToast("⚠ Completá la fecha y cantidad de horas.", "warning");
+      // Flujo Feriado
+      const horasInput = entryFeriadoHours.value;
+      const sectorVal = entrySector.value.trim();
+      const locationVal = entryLocation.value.trim();
+      const reasonVal = entryReason.value.trim();
+
+      if (!horasInput || !sectorVal || !locationVal || !reasonVal) {
+        alert("⚠ Completá las Horas a realizar, Sector, Lugar de trabajo y Motivo formales para el feriado.");
         return;
       }
-      if (!entrySector.value.trim() || !entryLocation.value.trim() || !entryReason.value.trim()) {
-        showToast("⚠ Completá sector, lugar y motivo.", "warning");
+      
+      const fh = parseFloat(horasInput) || 0;
+      if (fh < 0.5 || fh > 24) {
+        alert("⚠ La cantidad de horas ingresada para el feriado es inválida (debe ser entre 0.5 y 24).");
         return;
       }
-      // Feriados doesn't technically use start/end times in the form, substitute with generic full shift blocks or N/A
+
+      // Para Feriado, pasamos todo al 100% de manera estricta ignorando la hora
+      cat = { h50: 0, h100: fh, total: fh };
+      
+      // Valores por defecto para rellenar la estructura de la base de datos
       sVal = "00:00"; 
       eVal = "00:00"; 
-      // Map new Feriado fields cleanly into our historical DB architecture
-      tasksDesc = `Motivo: ${entryReason.value.trim()}`;
-      habitualSchedule = `Sector: ${entrySector.value.trim()} - Lugar: ${entryLocation.value.trim()}`;
+      tasksDesc = `Motivo: ${reasonVal}`;
+      habitualSchedule = `Sector: ${sectorVal} - Lugar: ${locationVal}`;
+      
     } else {
+      // Flujo Normal (Lunes a Viernes o Sábado/Domingo normal)
       sVal = entryStart.value;
       eVal = entryEnd.value;
-      if (!dVal || !sVal || !eVal) {
-        showToast("⚠ Completá fecha y horarios.", "warning");
+      const tVal = entryTasks.value.trim();
+      const hsVal = entrySchedule.value.trim();
+      
+      if (!sVal || !eVal) {
+        alert("⚠ Completá el horario de Inicio y Fin del turno.");
         return;
       }
-      if (!entryTasks.value.trim() || !entrySchedule.value.trim()) {
-        showToast("⚠ Completá las tareas y horario habitual.", "warning");
+      if (!tVal || !hsVal) {
+        alert("⚠ Completá las Tareas a realizar y el Horario habitual del turno.");
         return;
       }
-      tasksDesc = entryTasks.value.trim();
-      habitualSchedule = entrySchedule.value.trim();
-    }
-    
-    if (cat.total < 0.5 || cat.total > 24) {
-      showToast("⚠ Horas inválidas.", "warning");
-      return;
+
+      // Calcular divisiones mediante la lógica robusta aprobada
+      cat = calculateCategoryHours(dVal, sVal, eVal, templateVal);
+      
+      if (cat.total < 0.5 || cat.total > 24) {
+        alert("⚠ Las horas calculadas entre Inicio y Fin son inválidas. Revisa los horarios.");
+        return;
+      }
+      
+      tasksDesc = tVal;
+      habitualSchedule = hsVal;
     }
 
     entryIdCounter++;
@@ -389,7 +416,7 @@ if(btnAddEntry) {
       hours: cat.total,
       hours50: cat.h50,
       hours100: cat.h100,
-      template_name: entryTemplate.value,
+      template_name: templateVal,
       tasks_desc: tasksDesc,
       habitual_schedule: habitualSchedule
     });
@@ -413,7 +440,7 @@ if(btnAddEntry) {
       entryTasks.value = ""; 
     }
     
-    showToast("✅ Registro añadido.", "success");
+    showToast("✅ Registro añadido exitosamente.", "success");
 
     renderEntries();
   });
