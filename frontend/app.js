@@ -153,6 +153,13 @@ btnAppLogin.addEventListener("click", async () => {
   }
 });
 
+// Enter en cualquier campo del login overlay dispara el login
+[inputAppUser, inputAppPass].forEach(el => {
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") btnAppLogin.click();
+  });
+});
+
 btnLogout.addEventListener("click", async () => {
     try {
         await fetch("/api/auth/logout", { method: "POST" });
