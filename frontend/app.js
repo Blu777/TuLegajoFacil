@@ -263,6 +263,14 @@ function calcFormHours() {
   if (!entryDate || !entryHoursLbl) return { h50: 0, h100: 0, total: 0 };
   
   const templateVal = entryTemplate ? entryTemplate.value : "";
+  
+  if (!templateVal) {
+    entryHoursLbl.textContent = "0.0";
+    if (entryBadge50) entryBadge50.style.display = "none";
+    if (entryBadge100) entryBadge100.style.display = "none";
+    return { h50: 0, h100: 0, total: 0 };
+  }
+
   const isFeriado = templateVal.toLowerCase().includes("feriado");
   let cat;
   let s = entryStart ? entryStart.value : "";
@@ -362,7 +370,7 @@ if(btnAddEntry) {
       return;
     }
     if (!templateVal) {
-      alert("⚠ Por favor, selecciona un Tipo de Carga válido.");
+      alert("⚠ Por favor, selecciona un Tipo de Carga válido antes de agregar a la lista.");
       return;
     }
 
