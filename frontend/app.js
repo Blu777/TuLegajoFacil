@@ -179,16 +179,38 @@ function addRow() {
              id="date-${rowCounter}" aria-label="Fecha entrada ${rowCounter}" />
     </td>
     <td>
-      <input type="number" value="8" min="0.5" max="24" step="0.5"
-             style="width:80px" id="hours-${rowCounter}"
-             aria-label="Horas entrada ${rowCounter}" />
+      <input type="time" value="09:00" id="start-${rowCounter}" aria-label="Inicio ${rowCounter}" style="width:105px;" />
+    </td>
+    <td>
+      <input type="time" value="18:00" id="end-${rowCounter}" aria-label="Fin ${rowCounter}" style="width:105px;" />
+    </td>
+    <td>
+      <input type="number" value="9" min="0.5" max="24" step="0.5"
+             style="width:70px" id="hours-${rowCounter}"
+             aria-label="Horas entrada ${rowCounter}" readonly tabindex="-1" />
     </td>
     <td class="col-actions">
       <button class="btn-del" title="Eliminar fila" aria-label="Eliminar entrada ${rowCounter}" onclick="removeRow(this)">✕</button>
     </td>`;
 
+  const calcHours = () => {
+    const s = tr.querySelector(`input[id^="start-"]`).value;
+    const e = tr.querySelector(`input[id^="end-"]`).value;
+    if (s && e) {
+      const d1 = new Date(`2000-01-01T${s}`);
+      const d2 = new Date(`2000-01-01T${e}`);
+      let diff = (d2 - d1) / 3600000;
+      if (diff < 0) diff += 24;
+      tr.querySelector(`input[id^="hours-"]`).value = diff.toFixed(1);
+    }
+    updateSummary();
+  };
+
   // Listen to changes for live summary update
-  tr.querySelectorAll("input").forEach(inp => inp.addEventListener("input", updateSummary));
+  tr.querySelectorAll("input").forEach(inp => {
+    if (inp.type === "time") inp.addEventListener("input", calcHours);
+    else inp.addEventListener("input", updateSummary);
+  });
 
   entriesBody.appendChild(tr);
   updateUI();
@@ -326,9 +348,12 @@ function collectEntries() {
   const entries = [];
   for (const tr of rows) {
     const dateVal  = tr.querySelector("input[type=date]")?.value;
-    const hoursVal = tr.querySelector("input[type=number]")?.value;
-    if (!dateVal) {
-      showToast("⚠ Hay una fila sin fecha.", "warning");
+    const startVal = tr.querySelector(`input[id^="start-"]`)?.value;
+    const endVal   = tr.querySelector(`input[id^="end-"]`)?.value;
+    const hoursVal = tr.querySelector(`input[type="number"][id^="hours-"]`)?.value;
+    
+    if (!dateVal || !startVal || !endVal) {
+      showToast("⚠ Hay campos incompletos en una fila.", "warning");
       return null;
     }
     const hours = parseFloat(hoursVal);
@@ -336,7 +361,7 @@ function collectEntries() {
       showToast(`⚠ Horas inválidas en la fila con fecha ${dateVal}.`, "warning");
       return null;
     }
-    entries.push({ date: dateVal, hours });
+    entries.push({ date: dateVal, start_time: startVal, end_time: endVal, hours });
   }
   return entries;
 }

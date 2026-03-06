@@ -79,6 +79,8 @@ JOBS: dict[str, dict[str, Any]] = {}
 class EntryModel(BaseModel):
     # Regex: YYYY-MM-DD strict format
     date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$", max_length=10)
+    start_time: str = Field(..., pattern=r"^\d{2}:\d{2}$", max_length=5)
+    end_time: str = Field(..., pattern=r"^\d{2}:\d{2}$", max_length=5)
     hours: float = Field(..., ge=0.5, le=24.0)
 
     @field_validator("date")
@@ -102,8 +104,8 @@ class SubmitRequest(BaseModel):
     
     # Strict validation on free-text inputs to avoid injection in the Playwright DOM
     template_name: str = Field("Autorización de horas extras TV Universal", max_length=100)
-    tasks_desc: str = Field("Horas extras según solicitud", max_length=200, pattern=r"^[\w\s\.,\-áéíóúÁÉÍÓÚñÑ]*$")
-    habitual_schedule: str = Field("Generico", max_length=50, pattern=r"^[\w\s:\-]*$")
+    tasks_desc: str = Field("", max_length=200)
+    habitual_schedule: str = Field("", max_length=50)
 
 
 class JobResponse(BaseModel):
@@ -202,9 +204,12 @@ async def test_login(req: SubmitRequest, user: str = Depends(verify_access)):
 
     creds = _resolve_creds(req)
     try:
+        import os
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
-                headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
+                headless=True,
+                executable_path=os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"),
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
             )
             page = await browser.new_page()
             await login(page, creds)
@@ -218,7 +223,7 @@ async def test_login(req: SubmitRequest, user: str = Depends(verify_access)):
 async def submit_hours(req: SubmitRequest, user: str = Depends(verify_access)):
     """Start an async automation job. Returns a job_id to poll for status."""
     creds = _resolve_creds(req)
-    entries = [HoursEntry(date=e.date, hours=e.hours) for e in req.entries]
+    entries = [HoursEntry(date=e.date, start_time=e.start_time, end_time=e.end_time, hours=e.hours) for e in req.entries]
 
     job_id = str(uuid.uuid4())
     job_log: list[dict[str, str]] = []

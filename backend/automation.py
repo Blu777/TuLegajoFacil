@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HoursEntry:
     date: str        # ISO format: "YYYY-MM-DD"
+    start_time: str
+    end_time: str
     hours: float
 
     def formatted_date(self) -> str:
@@ -130,12 +132,11 @@ async def submit_entry(
         # Campo 1: Cantidad de horas
         await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(1)", str(entry.hours))
         
-        # Campo 2: Desde (asumimos fijo por falta de campo en frontend, ej: 18:00)
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(2)", "18:00")
+        # Campo 2: Desde (Inicio exacto)
+        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(2)", entry.start_time)
         
-        # Campo 3: Hasta (calculado simple base 18:00)
-        end_time = 18 + int(entry.hours)
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(3)", f"{end_time}:00" if end_time < 24 else "23:59")
+        # Campo 3: Hasta (Fin exacto)
+        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(3)", entry.end_time)
         
         # Campo 4 (input date especializado)
         await page.fill("input.relec-datepicker", entry.formatted_date())

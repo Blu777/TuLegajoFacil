@@ -374,7 +374,7 @@ td input[type="number"] { padding: 0.38rem 0.6rem; font-size: 0.84rem; }
 
 /* ─── Toasts ────────────────────────────────────────────────────────────── */
 #toast-container {
-  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1000;
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 99999;
   display: flex; flex-direction: column; gap: 0.6rem; pointer-events: none;
 }
 .toast {
