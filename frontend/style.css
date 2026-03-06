@@ -110,6 +110,15 @@ img, video, iframe { max-width: 100%; height: auto; }
 .brand-icon { font-size: 2.2rem; filter: drop-shadow(0 0 12px var(--accent-glow)); }
 .brand h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; background: linear-gradient(135deg, #e8ecf8 0%, var(--accent-2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .subtitle { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; font-weight: 400; letter-spacing: 0.3px; }
+.app-version {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  opacity: 0.55;
+  margin-top: 2px;
+  display: inline-block;
+}
 
 /* Status badge */
 .status-badge {
