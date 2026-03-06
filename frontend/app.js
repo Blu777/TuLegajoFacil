@@ -200,8 +200,10 @@ function calculateCategoryHours(dateStr, startStr, endStr, templateName) {
   let h50 = 0;
   let h100 = 0;
   
-  // Usar T12:00:00 asegura que la fecha caiga a mediodía localmente y no se corra de día por la zona horaria
-  const dateObj = new Date(`${dateStr}T12:00:00`);
+  // Explicitamente extraer el año, mes y día de la cadena YYYY-MM-DD
+  // para evitar desfases de zona horaria (UTC -> Local) al instanciar Date
+  const [yy, mm, dd] = dateStr.split('-');
+  const dateObj = new Date(yy, mm - 1, dd);
   const dayOfWeek = dateObj.getDay(); // 0 is Sunday, 6 is Saturday
   
   const isFeriado = templateName && templateName.toLowerCase().includes("feriado");
@@ -265,7 +267,8 @@ function calcFormHours() {
 
   // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
   if (entryDate.value && s === "07:00" && e === "12:00" && cat.total === 5) {
-    const dateObj = new Date(`${entryDate.value}T12:00:00`);
+    const [yy, mm, dd] = entryDate.value.split('-');
+    const dateObj = new Date(yy, mm - 1, dd);
     if (dateObj.getDay() === 0) {
       if (entryTemplate.value !== "Autorización de horas extras TV Universal") {
          entryTemplate.value = "Autorización de horas extras TV Universal";
@@ -321,7 +324,8 @@ if(btnAddEntry) {
     });
 
     // Reset Form for convenience
-    const nextDay = new Date(`${dVal}T12:00:00`);
+    const [ryy, rmm, rdd] = dVal.split('-');
+    const nextDay = new Date(ryy, rmm - 1, parseInt(rdd, 10));
     nextDay.setDate(nextDay.getDate() + 1);
     const nyyyy  = nextDay.getFullYear();
     const nmm    = String(nextDay.getMonth() + 1).padStart(2, "0");
