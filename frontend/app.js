@@ -27,6 +27,8 @@ const eyeOpen       = document.getElementById("eye-open");
 const eyeClosed     = document.getElementById("eye-closed");
 const summaryCount  = document.getElementById("summary-count");
 const summaryHours  = document.getElementById("summary-hours");
+const summary50     = document.getElementById("summary-50");
+const summary100    = document.getElementById("summary-100");
 const statusBadge   = document.getElementById("status-badge");
 const statusText    = document.getElementById("status-text");
 const submitLabel   = document.getElementById("submit-label");
@@ -42,6 +44,8 @@ const entryDate      = document.getElementById("entry-date");
 const entryStart     = document.getElementById("entry-start");
 const entryEnd       = document.getElementById("entry-end");
 const entryHoursLbl  = document.getElementById("entry-hours");
+const entryBadge50   = document.getElementById("entry-badge-50");
+const entryBadge100  = document.getElementById("entry-badge-100");
 const entryTemplate  = document.getElementById("entry-template");
 const entryTasks     = document.getElementById("entry-tasks");
 const entrySchedule  = document.getElementById("entry-schedule");
@@ -185,49 +189,114 @@ btnLogout.addEventListener("click", async () => {
 
 // ─── Entry Form & List management ───────────────────────────────────────────
 
+function calculateCategoryHours(dateStr, startStr, endStr, templateName) {
+  if (!dateStr || !startStr || !endStr) return { h50: 0, h100: 0, total: 0 };
+  
+  const d1 = new Date(`2000-01-01T${startStr}`);
+  const d2 = new Date(`2000-01-01T${endStr}`);
+  let total = (d2 - d1) / 3600000;
+  if (total < 0) total += 24;
+  
+  let h50 = 0;
+  let h100 = 0;
+  
+  const [yy, mm, dd] = dateStr.split('-');
+  const dateObj = new Date(yy, mm - 1, dd);
+  const dayOfWeek = dateObj.getDay(); // 0 is Sunday, 6 is Saturday
+  
+  const isFeriado = templateName && templateName.toLowerCase().includes("feriado");
+  
+  if (isFeriado || dayOfWeek === 0) {
+    h100 = total;
+  } else if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+    h50 = total;
+  } else if (dayOfWeek === 6) { // Saturday
+    const [startH, startM] = startStr.split(':').map(Number);
+    const startDec = startH + startM / 60;
+    
+    const [endH, endM] = endStr.split(':').map(Number);
+    let endDec = endH + endM / 60;
+    if (endDec < startDec) endDec += 24; // overnight
+    
+    if (endDec <= 13) {
+      h50 = total;
+    } else if (startDec >= 13) {
+      h100 = total;
+    } else {
+      h50 = 13 - startDec;
+      h100 = endDec - 13;
+    }
+  }
+  
+  return { 
+    h50: parseFloat(h50.toFixed(1)), 
+    h100: parseFloat(h100.toFixed(1)), 
+    total: parseFloat(total.toFixed(1)) 
+  };
+}
+
 function calcFormHours() {
-  if (!entryStart || !entryEnd || !entryHoursLbl) return 0;
+  if (!entryStart || !entryEnd || !entryHoursLbl || !entryDate) return { h50: 0, h100: 0, total: 0 };
+  
   const s = entryStart.value;
   const e = entryEnd.value;
-  let diff = 0;
-  if (s && e) {
-    const d1 = new Date(`2000-01-01T${s}`);
-    const d2 = new Date(`2000-01-01T${e}`);
-    diff = (d2 - d1) / 3600000;
-    if (diff < 0) diff += 24;
-    entryHoursLbl.textContent = diff.toFixed(1);
-    
-    // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
-    const dVal = entryDate.value;
-    if (dVal && s === "07:00" && e === "12:00" && diff === 5) {
-      const [yy, mm, dd] = dVal.split('-');
-      const dateObj = new Date(yy, mm - 1, dd);
-      if (dateObj.getDay() === 0) {
-        entryTemplate.value = "Autorización de horas extras TV Universal";
-        entryTasks.value = "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
-        entrySchedule.value = "No aplica";
+  const templateVal = entryTemplate ? entryTemplate.value : "";
+  
+  const cat = calculateCategoryHours(entryDate.value, s, e, templateVal);
+  entryHoursLbl.textContent = cat.total.toFixed(1);
+  
+  if (entryBadge50) {
+    if (cat.h50 > 0) {
+      entryBadge50.style.display = "inline-block";
+      entryBadge50.textContent = `${cat.h50}h (50%)`;
+    } else {
+      entryBadge50.style.display = "none";
+    }
+  }
+  
+  if (entryBadge100) {
+    if (cat.h100 > 0) {
+      entryBadge100.style.display = "inline-block";
+      entryBadge100.textContent = `${cat.h100}h (100%)`;
+    } else {
+      entryBadge100.style.display = "none";
+    }
+  }
+
+  // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
+  // If template changes programmatically, recalculate.
+  if (entryDate.value && s === "07:00" && e === "12:00" && cat.total === 5) {
+    const [yy, mm, dd] = entryDate.value.split('-');
+    const dateObj = new Date(yy, mm - 1, dd);
+    if (dateObj.getDay() === 0) {
+      if (entryTemplate.value !== "Autorización de horas extras TV Universal") {
+         entryTemplate.value = "Autorización de horas extras TV Universal";
+         entryTasks.value = "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
+         entrySchedule.value = "No aplica";
+         return calcFormHours(); // Re-trigger calculation
       }
     }
   }
-  return diff;
+  return cat;
 }
 
 if(entryStart) entryStart.addEventListener("input", calcFormHours);
 if(entryEnd) entryEnd.addEventListener("input", calcFormHours);
 if(entryDate) entryDate.addEventListener("input", calcFormHours);
+if(entryTemplate) entryTemplate.addEventListener("change", calcFormHours);
 
 if(btnAddEntry) {
   btnAddEntry.addEventListener("click", () => {
     const dVal = entryDate.value;
     const sVal = entryStart.value;
     const eVal = entryEnd.value;
-    const hours = calcFormHours();
+    const cat = calcFormHours();
     
     if (!dVal || !sVal || !eVal) {
       showToast("⚠ Completá fecha y horarios.", "warning");
       return;
     }
-    if (hours < 0.5 || hours > 24) {
+    if (cat.total < 0.5 || cat.total > 24) {
       showToast("⚠ Horas inválidas.", "warning");
       return;
     }
@@ -245,7 +314,9 @@ if(btnAddEntry) {
       dateFormatted: `${dd}/${mm}/${yy}`,
       start_time: sVal,
       end_time: eVal,
-      hours: hours,
+      hours: cat.total,
+      hours50: cat.h50,
+      hours100: cat.h100,
       template_name: entryTemplate.value,
       tasks_desc: entryTasks.value.trim(),
       habitual_schedule: entrySchedule.value.trim()
@@ -279,6 +350,9 @@ function renderEntries() {
                             entry.template_name.includes("Feriados") ? "bg-[#f59e0b]/20 text-[#fcd34d] border-[#f59e0b]/30" :
                             "bg-info/20 text-[#93c5fd] border-info/30";
 
+      const badge50 = entry.hours50 > 0 ? `<span class="text-[0.7rem] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded font-bold ml-1">${entry.hours50}h (50%)</span>` : '';
+      const badge100 = entry.hours100 > 0 ? `<span class="text-[0.7rem] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-bold ml-1">${entry.hours100}h (100%)</span>` : '';
+
       const card = document.createElement("div");
       card.className = "bg-white/5 border border-borderColor rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-row-in relative overflow-hidden group";
       card.innerHTML = `
@@ -287,6 +361,8 @@ function renderEntries() {
             <span class="text-[0.95rem] font-bold text-textPrimary">${entry.dateFormatted}</span>
             <span class="text-[0.75rem] font-medium text-textSecondary bg-black/20 rounded px-1.5 py-0.5">${entry.start_time} - ${entry.end_time}</span>
             <span class="text-[0.7rem] px-2 py-0.5 rounded-full border ${templateBadge} truncate max-w-[150px]" title="${entry.template_name}">${entry.template_name.split(" ").slice(0, 3).join(" ")}...</span>
+            ${badge50}
+            ${badge100}
           </div>
           <p class="text-[0.8rem] text-textMuted truncate" title="${entry.tasks_desc}">${entry.tasks_desc}</p>
         </div>
@@ -326,8 +402,29 @@ function updateUI() {
 
 function updateSummary() {
   const total = entriesList.reduce((sum, e) => sum + e.hours, 0);
+  const total50 = entriesList.reduce((sum, e) => sum + (e.hours50 || 0), 0);
+  const total100 = entriesList.reduce((sum, e) => sum + (e.hours100 || 0), 0);
+  
   summaryCount.textContent = entriesList.length;
   summaryHours.textContent = `${total.toFixed(1)} h`;
+  
+  if (summary50) {
+    if (total50 > 0) {
+      summary50.style.display = "inline-block";
+      summary50.textContent = `${total50.toFixed(1)}h al 50%`;
+    } else {
+      summary50.style.display = "none";
+    }
+  }
+  
+  if (summary100) {
+    if (total100 > 0) {
+      summary100.style.display = "inline-block";
+      summary100.textContent = `${total100.toFixed(1)}h al 100%`;
+    } else {
+      summary100.style.display = "none";
+    }
+  }
 }
 
 // ─── Credentials ─────────────────────────────────────────────────────────────
