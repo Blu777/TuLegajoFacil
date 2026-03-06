@@ -141,7 +141,7 @@
         <div>
           <h1 class="text-[1.3rem] md:text-[1.6rem] font-bold tracking-tight bg-gradient-to-br from-[#e8ecf8] to-accent2 bg-clip-text text-transparent">Mi Legajo</h1>
           <p class="text-[0.78rem] text-textSecondary mt-0.5 font-normal tracking-wide">Automatizador de Horas Extras</p>
-          <span class="text-[0.68rem] text-textMuted font-medium tracking-wide opacity-55 mt-0.5 inline-block">v1.2.5</span>
+          <span class="text-[0.68rem] text-textMuted font-medium tracking-wide opacity-55 mt-0.5 inline-block">v1.2.6</span>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 items-center justify-center">
@@ -238,7 +238,14 @@
             <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">📝</span> Nuevo Registro</h2>
           </div>
           <div class="p-4 md:p-5 flex flex-col gap-4">
-            
+
+            <!-- Atajos Rápidos -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[0.72rem] font-semibold text-textMuted uppercase tracking-widest">Atajos</span>
+              <button id="preset-domingo" type="button" class="inline-flex items-center gap-1.5 text-[0.75rem] font-semibold px-2.5 py-1 rounded-full border border-amber-400/30 text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 transition-all duration-150 cursor-pointer">☀️ Domingo</button>
+            </div>
+
+            <hr class="border-borderColor" />
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5 w-full">
                 <label for="entry-date" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Fecha</label>
