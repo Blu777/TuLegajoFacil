@@ -89,7 +89,10 @@ body {
 
 .grid-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  /* Punto 1: columna izquierda adaptable, no fija en 300px.
+     minmax(260px, 300px) le permite encogerse si la pantalla es angosta.
+     Al llegar a ~700px el grid colapsa a 1 columna. */
+  grid-template-columns: minmax(260px, 300px) 1fr;
   gap: 1.5rem;
   align-items: start;
 }
@@ -100,8 +103,22 @@ body {
   gap: 1.25rem;
 }
 
-@media (max-width: 780px) {
+/* ── Grid colapsa antes del punto de quiebre (≈710px) ── */
+@media (max-width: 700px) {
   .grid-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Zona intermedia 700px–780px: ajustes adicionales ── */
+@media (max-width: 780px) {
+  .container {
+    /* Punto 3: padding más conservador en tablets angostos */
+    padding: 1.5rem 1rem 3rem;
+  }
+  /* Header: el lado derecho (inline style) puede tener wrap */
+  .app-header > div:last-child {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
 }
 
 /* Evitar overflow en cualquier resolución */
