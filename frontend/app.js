@@ -359,16 +359,22 @@ if(entryFeriadoHours) entryFeriadoHours.addEventListener("input", calcFormHours)
 const presetDomingo = document.getElementById("preset-domingo");
 if (presetDomingo) {
   presetDomingo.addEventListener("click", () => {
-    // 1. Autocomplete all fields with the Sunday shift data
-    entryTemplate.value = "Autorización de horas extras TV Universal";
+    // Find the exact option value for TV Universal (matches by text to avoid encoding issues)
+    const tvUniversalOption = Array.from(entryTemplate.options).find(
+      opt => opt.textContent.includes("TV Universal")
+    );
+    if (tvUniversalOption) {
+      entryTemplate.value = tvUniversalOption.value;
+    }
+    
     entryStart.value = "07:00";
     entryEnd.value = "12:00";
-    entryTasks.value = "Opero sonido para PGM Nuestro Tiempo y reunión Univer";
+    entryTasks.value = "Opero sonido para PGM Nuestro Tiempo y reunion Univer";
     entrySchedule.value = "No aplica";
 
-    // 2. Fire events so the UI (field toggling and live hour calc) reacts
-    entryTemplate.dispatchEvent(new Event("change")); // triggers handleTemplateChange → shows standard fields
-    entryStart.dispatchEvent(new Event("input"));     // triggers calcFormHours
+    // Fire events so the UI updates (field visibility + live hour calc)
+    entryTemplate.dispatchEvent(new Event("change"));
+    entryStart.dispatchEvent(new Event("input"));
   });
 }
 
