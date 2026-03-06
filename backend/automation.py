@@ -117,8 +117,10 @@ async def submit_entry(
         await page.click("a.new-communication")
         await page.wait_for_selector("#communicationModalModal", timeout=5000)
 
-        # 2. Seleccionar el template dinámico
-        await page.click("#communicationModalModal a.select2-choice")
+        # 2. Seleccionar el template dinámico: busca el dropdown visible dentro del modal
+        select2_btn = page.locator("#communicationModalModal .modal-body a.select2-choice").first
+        await select2_btn.wait_for(state="visible", timeout=8000)
+        await select2_btn.click()
         
         # Escribir para filtrar y dar enter
         await page.fill(".select2-search input", template_name)
