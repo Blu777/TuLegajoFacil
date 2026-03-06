@@ -146,11 +146,13 @@ async def submit_entry(
         # Campo 1: Cantidad de horas
         await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(1)", str(entry.hours))
         
-        # Campo 2: Desde (Inicio exacto)
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(2)", entry.start_time)
+        # Campo 2: Desde — solo el número de hora ("07:00" → "7")
+        start_hour = str(int(entry.start_time.split(":")[0]))
+        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(2)", start_hour)
         
-        # Campo 3: Hasta (Fin exacto)
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(3)", entry.end_time)
+        # Campo 3: Hasta — solo el número de hora ("18:00" → "18")
+        end_hour = str(int(entry.end_time.split(":")[0]))
+        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(3)", end_hour)
         
         # Campo 4 (input date especializado)
         await page.fill("input.relec-datepicker", entry.formatted_date())
