@@ -79,10 +79,10 @@ async def login(page: Page, creds: Credentials) -> None:
     # Ejemplos: "button[type='submit']", "#btn-login", ".login-btn"
     await page.click('#button_sing_in')
 
-    # ← COMPLETAR: selector de algún elemento que aparezca DESPUÉS del login exitoso
-    # para confirmar que nos logueamos (ej: el menú principal, el nombre del usuario)
-    await page.wait_for_selector("#main-menu", timeout=15000)
-    logger.info("Login successful.")
+    # Navegar directamente a la lista de comunicaciones (bypass home.htm)
+    target_url = creds.url.replace("login.htm", "employeeCommunicationsList.htm")
+    await page.goto(target_url, wait_until="networkidle")
+    logger.info("Login successful, navigated to communications list.")
 
 
 async def navigate_to_hours_form(page: Page) -> None:

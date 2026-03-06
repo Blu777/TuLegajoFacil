@@ -2,62 +2,48 @@
 
 Esta aplicación te permite cargar de forma masiva tus horas extras en el sistema de legajos de la empresa, evitando la monótona tarea de subirlas día por día.
 
-La app levanta una interfaz web moderna y minimalista. Cuando presionás "Enviar", un bot en segundo plano (Playwright) abre un navegador Chromium invisible, se autentica en la plataforma, y completa el formulario automáticamente por vos.
+La app levanta una interfaz web moderna, minimalista y segura (PWA). Cuando ingresás los días y la franja horaria (Inicio/Fin), un bot en segundo plano (Playwright) abre un navegador Chromium invisible, se autentica en la plataforma, busca el formulario dinámico y completa los registros automáticamente por vos.
 
-## 🚀 Requisitos
-
-- **Docker** y **Docker Compose** instalados en tu máquina (o servidor).
-
-## 🐋 Cómo ejecutar la aplicación
+## 🚀 Características Principales
+*   **Gestión Masiva:** Agregá todas las filas que quieras y envialas en 1 solo click.
+*   **Cálculo Automático:** Seleccioná la hora de inicio y fin, y el sistema calculará exactamente las horas.
+*   **Configuración Personalizable:** Definí las "Tareas a realizar" y el "Horario Laboral Habitual" directamente desde la interfaz.
+*   **Historial Local (SQLite):** Todo se guarda localmente para que puedas consultar envíos viejos en la pestaña Historial.
+*   **Seguridad JWT:** Sesiones seguras para la PWA sin localStorage, previniendo secuestros de sesión.
+*   **PWA Ready:** Podés instalar la app directamente en tu celular Android/iOS para usarla como una app nativa.
+*   **Optimizado para TrueNAS:** Imagen Alpine hiper-liviana con usuario no-root mapeado a `apps` (UID 568).
 
 ## 🐋 Cómo desplegar en TrueNAS (Custom App)
 
-1. **Subir los archivos** al pool de tu TrueNAS (o tener el directorio mapeado si usás Portainer/Docker interactivo).
-2. **Configurar Entorno (Obligatorio en TrueNAS UI):** La aplicación está asegurada con Basic Auth para que nadie en tu red local pueda entrar. A su vez, necesita tus credenciales del portal. 
-   Al crear la **Custom App** o lanzar la imagen, asegurate de **cargar estas 5 variables de entorno** (Environment Variables) en la sección correspondiente de la interfaz de TrueNAS (tal como figuran vacías en el `docker-compose.yml`):
+La aplicación está diseñada para desplegarse fácilmente bajo TrueNAS Scale utilizando Docker / Custom Apps.
+
+1. **Creá la Custom App** apuntando a la imagen de Docker Hub (ej: `tu-repo/legajo-automator:latest`).
+2. **Configurar Entorno (Obligatorio en TrueNAS UI):** La aplicación está asegurada para que nadie en tu red local pueda entrar. A su vez, necesita tus credenciales del portal. 
+   Configurá estas **4 variables de entorno** en la sección correspondiente de la interfaz de TrueNAS (tal como figuran vacías en el `docker-compose.yml`):
    * `APP_USERNAME`: Tu usuario elegido para ver la pantalla de la app (ej: `admin`).
    * `APP_PASSWORD`: Tu contraseña para ver la pantalla de la app.
-   * `LEGAJO_USER`: Tu correo electrónico o legajo de la empresa.
-   * `LEGAJO_PASS`: Tu contraseña de la empresa.
-   * `LEGAJO_URL`: (Ya viene predefinida en el YAML como `https://app.tulegajo.com/login.htm`).
-3. **Mapeo de Red:** El contenedor expone el puerto `8080`. Mapealo a un puerto libre de tu host TrueNAS (ej: `8080:8080`).
-4. **Desplegar y arrancar**.
-5. Abrir la página en tu navegador insertando la IP de TrueNAS (se te pedirá el usuario y contraseña de *Basic Auth* que configuraste):
-   🔗 `http://[IP_TRUENAS]:8080`
+   * `LEGAJO_USER`: Tu correo electrónico o legajo de la empresa (CUIT).
+   * `LEGAJO_PASS`: Tu contraseña de la empresa en *tulegajo.com*.
+   * *Opcional:* `LEGAJO_URL`: Solo si la URL de login de la empresa cambia (por defecto es `https://app.tulegajo.com/login.htm`).
+3. **Persistencia (Volúmenes):** Mapeá el directorio `/app/data` del contenedor a un Dataset de TrueNAS (Ej: `/mnt/pool/data/legajo-app/data:/app/data`). **Crucial:** Asegurate que el Dataset pertenezca al usuario `apps` (UID 568).
+4. **Mapeo de Red:** El contenedor expone el puerto `8080` (TCP). Mapealo a un puerto libre de tu host TrueNAS (ej: Node Port `48080`).
+5. Abrí la página en tu navegador (ej: `http://192.168.1.50:48080`).
 
----
+## 💻 Desarrollo Local (Docker Compose)
 
-## 🛠️ PASO FINAL: Conectar la automatización con la página de tu empresa
+Si querés correr la app en tu propia PC para hacer pruebas:
 
-Aunque la arquitectura ya está completa, **necesitamos indicarle al script exactamente dónde hacer click.**
-Actualmente, el archivo `backend/automation.py` está lleno de "stubs" temporales (`# ← COMPLETAR`).
+1. Cloná este repositorio.
+2. (Opcional) Copiá el `.env.example` a `.env` y llená tus variables de entorno para no tener que escribirlas manualmente al hacer "test login".
+3. Ejecutá:
+```bash
+docker compose up -d --build
+```
+4. Ingresá a `http://localhost:48080`.
 
-Para que yo pueda escribir la lógica definitiva, necesito que entres al navegador y me pases los **Selectores CSS** de los elementos de la página (`https://app.tulegajo.com/home.htm`).
+## 📱 Instalación PWA (Móvil)
+Una vez desplegada la aplicación, abrila desde el navegador de tu celular (ej. Chrome o Safari).
+*   **En Android:** Abrí el menú de Chrome y seleccioná "Instalar aplicación" o "Agregar a la pantalla de inicio".
+*   **En iOS:** Abrí el menú de Compartir de Safari y seleccioná "Agregar a inicio".
 
-### ¿Cómo obtener los selectores? (Instrucciones)
-
-1. Abrí tu navegador (Chrome o Firefox) y entrá a **`https://app.tulegajo.com/home.htm`** (si la página de login es diferente, avisame).
-2. Apretá la tecla `F12` para abrir las **DevTools** (Herramientas de desarrollador).
-3. Hacé click en el **ícono del cursor en un cuadradito** (arriba a la izquierda del panel F12). Esto te permite seleccionar elementos en la página.
-4. **Hacé click en el campo de "Usuario"** (donde ponés tu email/DNI).
-5. En el panel F12 vas a ver que resalta una línea de código HTML como `<input id="username" class="form-control" name="user" ...>`.
-6. Hacé **click derecho** sobre esa línea resaltada > **Copy** (Copiar) > **Copy selector** (Copiar selector).
-7. Pegá ese selector en el chat para pasármelo.
-
-#### Necesito que repitas ese paso de "Copiar Selector" para las siguientes cosas:
-
-**En la pantalla de Login:**
-* [ ] Campo del Usuario/Email
-* [ ] Campo de la Contraseña
-* [ ] Botón de "Iniciar Sesión"
-
-**En la pantalla principal (una vez que hacés login):**
-* [ ] El botón o menú que tenés que apretar para ir a la sección de "Cargar Horas". _(Nota: Si cuando hacés login vas directo al formulario, omití este paso)_.
-
-**En el Formulario de Carga de Horas:**
-* [ ] El campo donde se ingresa la **Fecha** (¿Es un calendario, o se puede escribir? ¿Qué formato de fecha te pide? Ej: `DD/MM/YYYY`)
-* [ ] El campo donde se escriben las **Horas**
-* [ ] El botón para "Guardar", "Enviar" o "Aceptar" la carga de ese día
-* [ ] Un cartel o elemento de éxito que aparezca en pantalla para darnos cuenta que se guardó bien (ej: una barrita verde que dice "Guardado exitosamente").
-
-¡Pasame esos selectores acá por el chat y automáticamente reescribiré `backend/automation.py` para que conecte prefecto con tu sistema!
+¡La app se abrirá en pantalla completa y 100% responsiva para cargar tus horas desde la cama!

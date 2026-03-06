@@ -196,19 +196,32 @@ function addRow() {
   const calcHours = () => {
     const s = tr.querySelector(`input[id^="start-"]`).value;
     const e = tr.querySelector(`input[id^="end-"]`).value;
+    let diff = 0;
     if (s && e) {
       const d1 = new Date(`2000-01-01T${s}`);
       const d2 = new Date(`2000-01-01T${e}`);
-      let diff = (d2 - d1) / 3600000;
+      diff = (d2 - d1) / 3600000;
       if (diff < 0) diff += 24;
       tr.querySelector(`input[id^="hours-"]`).value = diff.toFixed(1);
     }
+    
+    // Evaluate Sunday Shift Condition
+    const dVal = tr.querySelector(`input[id^="date-"]`).value;
+    if (dVal && s === "07:00" && e === "12:00" && diff === 5) {
+      const [yy, mm, dd] = dVal.split('-');
+      const dateObj = new Date(yy, mm - 1, dd);
+      if (dateObj.getDay() === 0) {
+        document.getElementById("input-tasks").value = "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
+        document.getElementById("input-schedule").value = "No aplica";
+      }
+    }
+
     updateSummary();
   };
 
   // Listen to changes for live summary update
   tr.querySelectorAll("input").forEach(inp => {
-    if (inp.type === "time") inp.addEventListener("input", calcHours);
+    if (inp.type === "time" || inp.type === "date") inp.addEventListener("input", calcHours);
     else inp.addEventListener("input", updateSummary);
   });
 
