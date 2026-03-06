@@ -343,9 +343,13 @@ if(btnAddEntry) {
     let cat;
     let sVal, eVal, tasksDesc, habitualSchedule;
     
-    // Validar siempre la fecha primero
+    // Validar siempre la fecha y tipo de carga primero
     if (!dVal) {
       alert("⚠ Por favor, completá la fecha de trabajo.");
+      return;
+    }
+    if (!templateVal) {
+      alert("⚠ Por favor, selecciona un Tipo de Carga válido.");
       return;
     }
 
@@ -431,6 +435,9 @@ if(btnAddEntry) {
     entryDate.value = `${nyyyy}-${nmm}-${ndd}`;
     
     // Clear fields
+    entryTemplate.value = "";
+    handleTemplateChange(); // trigger UI toggle back to normal state if needed
+
     if (isFeriado) {
       entryFeriadoHours.value = "";
       entrySector.value = "";
