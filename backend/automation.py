@@ -130,9 +130,10 @@ async def submit_entry(
         # Forzar click via JavaScript en caso de que siga oculto por CSS
         await page.evaluate("el => el.click()", await select2_btn.element_handle())
         
-        # Escribir para filtrar y dar enter
-        await page.wait_for_selector(".select2-search input", state="visible", timeout=5000)
-        await page.fill(".select2-search input", template_name)
+        # Escribir para filtrar — usar el dropdown activo, no el primero de la página
+        # .select2-drop-active es el dropdown que está abierto actualmente
+        await page.wait_for_selector(".select2-drop-active .select2-search input", state="visible", timeout=5000)
+        await page.fill(".select2-drop-active .select2-search input", template_name)
         await asyncio.sleep(0.4)
         await page.keyboard.press("Enter")
         
