@@ -185,24 +185,31 @@ function addRow() {
   const todayISO = `${yyyy}-${mm}-${dd}`;
 
   tr.innerHTML = `
-    <td class="row-num">${rowCounter}</td>
-    <td>
+    <td class="row-num text-[0.78rem] md:text-[0.72rem] font-medium text-textMuted text-center md:text-left">${rowCounter}</td>
+    <td class="p-1 md:p-2">
       <input type="date" value="${todayISO}" max="2099-12-31"
-             id="date-${rowCounter}" aria-label="Fecha entrada ${rowCounter}" />
+             id="date-${rowCounter}" aria-label="Fecha entrada ${rowCounter}" 
+             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[105px] md:w-full"
+             style="color-scheme: dark;" />
     </td>
-    <td>
-      <input type="time" value="09:00" id="start-${rowCounter}" aria-label="Inicio ${rowCounter}" style="width:105px;" />
+    <td class="p-1 md:p-2">
+      <input type="time" value="09:00" id="start-${rowCounter}" aria-label="Inicio ${rowCounter}" 
+             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[85px] md:w-full"
+             style="color-scheme: dark;" />
     </td>
-    <td>
-      <input type="time" value="18:00" id="end-${rowCounter}" aria-label="Fin ${rowCounter}" style="width:105px;" />
+    <td class="p-1 md:p-2">
+      <input type="time" value="18:00" id="end-${rowCounter}" aria-label="Fin ${rowCounter}" 
+             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[85px] md:w-full"
+             style="color-scheme: dark;" />
     </td>
-    <td>
+    <td class="p-1 md:p-2">
       <input type="number" value="9" min="0.5" max="24" step="0.5"
-             style="width:70px" id="hours-${rowCounter}"
-             aria-label="Horas entrada ${rowCounter}" readonly tabindex="-1" />
+             id="hours-${rowCounter}"
+             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[60px] md:w-full opacity-80 cursor-default"
+             aria-label="Horas entrada ${rowCounter}" readonly tabindex="-1" style="color-scheme: dark;" />
     </td>
-    <td class="col-actions">
-      <button class="btn-del" title="Eliminar fila" aria-label="Eliminar entrada ${rowCounter}" onclick="removeRow(this)">✕</button>
+    <td class="col-actions text-center border-none p-1 md:p-2">
+      <button class="bg-transparent border-none cursor-pointer text-textMuted text-[1.1rem] rounded-md px-2 py-1.5 transition-colors duration-200 hover:text-error hover:bg-error/10" title="Eliminar fila" aria-label="Eliminar entrada ${rowCounter}" onclick="removeRow(this)">✕</button>
     </td>`;
 
   const calcHours = () => {

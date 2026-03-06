@@ -81,26 +81,20 @@
       }
     }
   </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .backdrop-blur-card {
-        backdrop-filter: blur(16px) saturate(180%);
-        -webkit-backdrop-filter: blur(16px) saturate(180%);
-      }
-      .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,130,255,0.3); border-radius: 3px; }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,130,255,0.5); }
-      
-      .input-base {
-        @apply bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow;
-      }
-      
-      input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5) brightness(1.5); cursor: pointer; }
-      input[type="time"] { color-scheme: dark; }
-      input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.7) brightness(1.8); cursor: pointer; }
-      select option { @apply bg-bgPrimary text-textPrimary; }
+  <style>
+    .backdrop-blur-card {
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
     }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,130,255,0.3); border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,130,255,0.5); }
+    
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5) brightness(1.5); cursor: pointer; }
+    input[type="time"] { color-scheme: dark; }
+    input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.7) brightness(1.8); cursor: pointer; }
+    select option { background-color: #0a0e1a; color: #e8ecf8; }
   </style>
 </head>
 <body class="font-sans bg-bgPrimary text-textPrimary min-h-screen overflow-x-hidden relative break-words">
@@ -116,11 +110,11 @@
         <div class="flex flex-col gap-4 mb-4">
           <div class="flex flex-col gap-1.5">
             <label for="app-user" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Nombre de usuario</label>
-            <input id="app-user" type="text" placeholder="Tu nombre de usuario" autocomplete="username" class="input-base" />
+            <input id="app-user" type="text" placeholder="Tu nombre de usuario" autocomplete="username" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
           </div>
           <div class="flex flex-col gap-1.5">
             <label for="app-pass" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Contraseña</label>
-            <input id="app-pass" type="password" placeholder="••••••••" autocomplete="current-password" class="input-base" />
+            <input id="app-pass" type="password" placeholder="••••••••" autocomplete="current-password" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
           </div>
         </div>
         <button id="btn-app-login" class="w-full mt-4 flex items-center justify-center gap-2 font-sans font-semibold text-[0.94rem] tracking-wide rounded-lg cursor-pointer px-[1.6rem] py-[0.75rem] transition-all duration-200 relative overflow-hidden bg-gradient-to-br from-accent to-[#4f6bff] text-white shadow-btn hover:shadow-btnHover hover:-translate-y-[1px] active:scale-95 disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100 group">
@@ -189,12 +183,12 @@
             <div class="flex flex-col gap-3.5 mb-4 w-full" id="creds-fields">
               <div class="flex flex-col gap-1.5 w-full">
                 <label for="input-user" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Usuario</label>
-                <input id="input-user" type="text" placeholder="Tu usuario de TuLegajo" autocomplete="username" class="input-base" />
+                <input id="input-user" type="text" placeholder="Tu usuario de TuLegajo" autocomplete="username" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
               </div>
               <div class="flex flex-col gap-1.5 w-full">
                 <label for="input-pass" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Contraseña</label>
                 <div class="relative w-full">
-                  <input id="input-pass" type="password" placeholder="••••••••" autocomplete="current-password" class="input-base pr-10" />
+                  <input id="input-pass" type="password" placeholder="••••••••" autocomplete="current-password" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow pr-10" />
                   <button id="btn-toggle-pass" class="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-textMuted grid place-items-center p-1 rounded transition-colors duration-200 hover:text-textSecondary" type="button" title="Mostrar/ocultar contraseña" aria-label="Toggle password visibility">
                     <svg id="eye-open" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     <svg id="eye-closed" class="w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
@@ -217,7 +211,7 @@
             <div class="flex flex-col gap-3.5 w-full">
               <div class="flex flex-col gap-1.5 w-full">
                 <label for="input-template" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tipo de Carga</label>
-                <select id="input-template" class="input-base">
+                <select id="input-template" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow">
                   <option value="Autorización Feriados TV">📅 Feriados TV</option>
                   <option value="Autorización de horas extras TV Universal">📺 TV Universal - Horas Extras</option>
                   <option value="Autorización de horas extras Unife">🎓 Unife - Horas Extras</option>
@@ -225,11 +219,11 @@
               </div>
               <div class="flex flex-col gap-1.5 w-full">
                 <label for="input-tasks" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tareas a realizar</label>
-                <input id="input-tasks" type="text" value="" placeholder="Descripción de las tareas" class="input-base" />
+                <input id="input-tasks" type="text" value="" placeholder="Descripción de las tareas" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
               </div>
               <div class="flex flex-col gap-1.5 w-full">
                 <label for="input-schedule" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Horario Laboral Habitual</label>
-                <input id="input-schedule" type="text" value="" placeholder="Ej: 09:00 a 18:00" class="input-base" />
+                <input id="input-schedule" type="text" value="" placeholder="Ej: 09:00 a 18:00" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
               </div>
             </div>
           </div>
@@ -326,7 +320,7 @@
         <div class="p-4 md:p-5">
           <div class="flex flex-col gap-1.5 max-w-[400px] mb-6 w-full">
             <label for="period-select" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Selecciona el Periodo (21 al 20)</label>
-            <select id="period-select" class="input-base">
+            <select id="period-select" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow">
               <option value="">Cargando periodos...</option>
             </select>
           </div>
