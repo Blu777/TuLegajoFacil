@@ -192,48 +192,61 @@ btnLogout.addEventListener("click", async () => {
 function calculateCategoryHours(dateStr, startStr, endStr, templateName) {
   if (!dateStr || !startStr || !endStr) return { h50: 0, h100: 0, total: 0 };
   
-  const d1 = new Date(`2000-01-01T${startStr}`);
-  const d2 = new Date(`2000-01-01T${endStr}`);
-  let total = (d2 - d1) / 3600000;
-  if (total < 0) total += 24;
+  // 1. Forzar fecha local (evita que el Lunes se vuelva Domingo)
+  const partesFecha = dateStr.split('-'); // ["2026", "03", "09"]
+  const fechaLocal = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
+  const diaSemana = fechaLocal.getDay(); // 0=Dom, 1=Lun ... 6=Sáb
+
+  // 2. Convertir "09:00" a número decimal (9.0) para poder calcular
+  const convertirADecimal = (horaStr) => {
+      if (!horaStr) return 0;
+      const [horas, minutos] = horaStr.split(':').map(Number);
+      return horas + (minutos / 60);
+  };
+
+  const inicio = convertirADecimal(startStr);
+  const fin = convertirADecimal(endStr);
   
-  let h50 = 0;
-  let h100 = 0;
-  
-  // Explicitamente extraer el año, mes y día de la cadena YYYY-MM-DD
-  // para evitar desfases de zona horaria (UTC -> Local) al instanciar Date
-  const [yy, mm, dd] = dateStr.split('-');
-  const dateObj = new Date(yy, mm - 1, dd);
-  const dayOfWeek = dateObj.getDay(); // 0 is Sunday, 6 is Saturday
-  
-  const isFeriado = templateName && templateName.toLowerCase().includes("feriado");
-  
-  if (isFeriado || dayOfWeek === 0) {
-    h100 = total;
-  } else if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-    h50 = total;
-  } else if (dayOfWeek === 6) { // Saturday
-    const [startH, startM] = startStr.split(':').map(Number);
-    const startDec = startH + startM / 60;
-    
-    const [endH, endM] = endStr.split(':').map(Number);
-    let endDec = endH + endM / 60;
-    if (endDec < startDec) endDec += 24; // overnight
-    
-    if (endDec <= 13) {
-      h50 = total;
-    } else if (startDec >= 13) {
-      h100 = total;
-    } else {
-      h50 = 13 - startDec;
-      h100 = endDec - 13;
-    }
+  // Calcular total de horas del turno (soporta cruce de medianoche)
+  let totalHoras = fin - inicio;
+  if (totalHoras < 0) totalHoras += 24;
+
+  let horas50 = 0;
+  let horas100 = 0;
+
+  // Detectar si seleccionaste un Feriado en el desplegable
+  const esFeriado = templateName && templateName.toLowerCase().includes("feriado");
+
+  // 3. Motor de Reglas (Ley Argentina)
+  if (esFeriado || diaSemana === 0) {
+      // Feriados y Domingos: Todo al 100%
+      horas100 = totalHoras;
+  } 
+  else if (diaSemana >= 1 && diaSemana <= 5) {
+      // Lunes a Viernes: Todo al 50%
+      horas50 = totalHoras;
+  } 
+  else if (diaSemana === 6) {
+      // Sábados: Barrera de las 13:00 hs
+      const barrera = 13;
+
+      if (fin <= barrera) {
+          // Entró y salió antes de las 13:00 -> Todo 50%
+          horas50 = totalHoras;
+      } else if (inicio >= barrera) {
+          // Entró a las 13:00 o después -> Todo 100%
+          horas100 = totalHoras;
+      } else {
+          // Cruzó la barrera de las 13:00 (ej: 09:00 a 18:00) -> Se divide
+          horas50 = barrera - inicio;
+          horas100 = fin - barrera;
+      }
   }
-  
-  return { 
-    h50: parseFloat(h50.toFixed(1)), 
-    h100: parseFloat(h100.toFixed(1)), 
-    total: parseFloat(total.toFixed(1)) 
+
+  return {
+      h50: Number(horas50.toFixed(2)),
+      h100: Number(horas100.toFixed(2)),
+      total: Number(totalHoras.toFixed(2))
   };
 }
 
