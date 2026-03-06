@@ -36,11 +36,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_NAME }}
-          # Crea la etiqueta 'latest' en cada push a main/master, y usa el numero de version si creás un Release
+          # Crea la etiqueta 'latest' y '1.0.x' auto-incremental en cada push
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=1.0.${{ github.run_number }},enable={{is_default_branch}}
             type=ref,event=tag
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
