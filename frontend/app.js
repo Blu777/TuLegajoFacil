@@ -14,9 +14,8 @@
 "use strict";
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
-const entriesBody   = document.getElementById("entries-body");
+const entriesListContainer= document.getElementById("entries-list-container");
 const emptyState    = document.getElementById("empty-state");
-const btnAddRow     = document.getElementById("btn-add-row");
 const btnClearAll   = document.getElementById("btn-clear-all");
 const btnSubmit     = document.getElementById("btn-submit");
 const btnTestLogin  = document.getElementById("btn-test-login");
@@ -37,10 +36,15 @@ const logOutput     = document.getElementById("log-output");
 const envNotice     = document.getElementById("env-notice");
 const credsFields   = document.getElementById("creds-fields");
 
-// Settings
-const inputTemplate = document.getElementById("input-template");
-const inputTasks    = document.getElementById("input-tasks");
-const inputSchedule = document.getElementById("input-schedule");
+// Form Settings
+const btnAddEntry    = document.getElementById("btn-add-entry");
+const entryDate      = document.getElementById("entry-date");
+const entryStart     = document.getElementById("entry-start");
+const entryEnd       = document.getElementById("entry-end");
+const entryHoursLbl  = document.getElementById("entry-hours");
+const entryTemplate  = document.getElementById("entry-template");
+const entryTasks     = document.getElementById("entry-tasks");
+const entrySchedule  = document.getElementById("entry-schedule");
 
 // History / Tabs
 const tabSubmit = document.getElementById("tab-submit");
@@ -67,7 +71,8 @@ const inputAppPass    = document.getElementById("app-pass");
 const btnLogout       = document.getElementById("btn-logout");
 
 // ─── State ───────────────────────────────────────────────────────────────────
-let rowCounter  = 0;
+let entriesList = [];
+let entryIdCounter = 0;
 let pollingId   = null;
 let isRunning   = false;
 let envCredsLoaded = false;
@@ -106,10 +111,18 @@ async function checkAuth() {
     await fetch("/api/auth/auto-login");
   } catch(_) {}
 
+  // Set default date for form
+  const today = new Date();
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth() + 1).padStart(2, "0");
+  const dd    = String(today.getDate()).padStart(2, "0");
+  if(entryDate) entryDate.value = `${yyyy}-${mm}-${dd}`;
+
+  // Evaluate initial hours
+  calcFormHours();
+  
   const isAuth = await checkAuth();
   if (isAuth) {
-    // Add one default row to get the user started
-    addRow();
     updateSummary();
   }
 })();
@@ -137,9 +150,7 @@ btnAppLogin.addEventListener("click", async () => {
       if(res.ok) {
           showToast("¡Bienvenido!", "success");
           inputAppPass.value = "";
-          await checkAuth();
-          if (entriesBody.querySelectorAll("tr").length === 0) {
-              addRow();
+          if (entriesList.length === 0) {
               updateSummary();
           }
       } else {
@@ -171,121 +182,150 @@ btnLogout.addEventListener("click", async () => {
     }
 });
 
-// ─── Row management ──────────────────────────────────────────────────────────
-function addRow() {
-  rowCounter++;
-  const tr = document.createElement("tr");
-  tr.dataset.id = rowCounter;
+// ─── Entry Form & List management ───────────────────────────────────────────
 
-  // Default date = today in local time
-  const today = new Date();
-  const yyyy  = today.getFullYear();
-  const mm    = String(today.getMonth() + 1).padStart(2, "0");
-  const dd    = String(today.getDate()).padStart(2, "0");
-  const todayISO = `${yyyy}-${mm}-${dd}`;
-
-  tr.innerHTML = `
-    <td class="row-num text-[0.78rem] md:text-[0.72rem] font-medium text-textMuted text-center md:text-left">${rowCounter}</td>
-    <td class="p-1 md:p-2">
-      <input type="date" value="${todayISO}" max="2099-12-31"
-             id="date-${rowCounter}" aria-label="Fecha entrada ${rowCounter}" 
-             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[105px] md:w-full"
-             style="color-scheme: dark;" />
-    </td>
-    <td class="p-1 md:p-2">
-      <input type="time" value="09:00" id="start-${rowCounter}" aria-label="Inicio ${rowCounter}" 
-             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[85px] md:w-full"
-             style="color-scheme: dark;" />
-    </td>
-    <td class="p-1 md:p-2">
-      <input type="time" value="18:00" id="end-${rowCounter}" aria-label="Fin ${rowCounter}" 
-             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[85px] md:w-full"
-             style="color-scheme: dark;" />
-    </td>
-    <td class="p-1 md:p-2">
-      <input type="number" value="9" min="0.5" max="24" step="0.5"
-             id="hours-${rowCounter}"
-             class="bg-white/5 border border-borderColor rounded-md text-textPrimary font-sans text-[0.82rem] px-2 py-1 outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[2px] focus:ring-accentGlow w-[60px] md:w-full opacity-80 cursor-default"
-             aria-label="Horas entrada ${rowCounter}" readonly tabindex="-1" style="color-scheme: dark;" />
-    </td>
-    <td class="col-actions text-center border-none p-1 md:p-2">
-      <button class="bg-transparent border-none cursor-pointer text-textMuted text-[1.1rem] rounded-md px-2 py-1.5 transition-colors duration-200 hover:text-error hover:bg-error/10" title="Eliminar fila" aria-label="Eliminar entrada ${rowCounter}" onclick="removeRow(this)">✕</button>
-    </td>`;
-
-  const calcHours = () => {
-    const s = tr.querySelector(`input[id^="start-"]`).value;
-    const e = tr.querySelector(`input[id^="end-"]`).value;
-    let diff = 0;
-    if (s && e) {
-      const d1 = new Date(`2000-01-01T${s}`);
-      const d2 = new Date(`2000-01-01T${e}`);
-      diff = (d2 - d1) / 3600000;
-      if (diff < 0) diff += 24;
-      tr.querySelector(`input[id^="hours-"]`).value = parseFloat(diff.toFixed(1));
-    }
+function calcFormHours() {
+  if (!entryStart || !entryEnd || !entryHoursLbl) return 0;
+  const s = entryStart.value;
+  const e = entryEnd.value;
+  let diff = 0;
+  if (s && e) {
+    const d1 = new Date(`2000-01-01T${s}`);
+    const d2 = new Date(`2000-01-01T${e}`);
+    diff = (d2 - d1) / 3600000;
+    if (diff < 0) diff += 24;
+    entryHoursLbl.textContent = diff.toFixed(1);
     
     // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
-    const dVal = tr.querySelector(`input[id^="date-"]`).value;
+    const dVal = entryDate.value;
     if (dVal && s === "07:00" && e === "12:00" && diff === 5) {
       const [yy, mm, dd] = dVal.split('-');
       const dateObj = new Date(yy, mm - 1, dd);
       if (dateObj.getDay() === 0) {
-        document.getElementById("input-template").value = "Autorización de horas extras TV Universal";
-        document.getElementById("input-tasks").value = "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
-        document.getElementById("input-schedule").value = "No aplica";
+        entryTemplate.value = "Autorización de horas extras TV Universal";
+        entryTasks.value = "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
+        entrySchedule.value = "No aplica";
       }
     }
+  }
+  return diff;
+}
 
-    updateSummary();
-  };
+if(entryStart) entryStart.addEventListener("input", calcFormHours);
+if(entryEnd) entryEnd.addEventListener("input", calcFormHours);
+if(entryDate) entryDate.addEventListener("input", calcFormHours);
 
-  // Listen to changes for live summary update
-  tr.querySelectorAll("input").forEach(inp => {
-    if (inp.type === "time" || inp.type === "date") inp.addEventListener("input", calcHours);
-    else inp.addEventListener("input", updateSummary);
+if(btnAddEntry) {
+  btnAddEntry.addEventListener("click", () => {
+    const dVal = entryDate.value;
+    const sVal = entryStart.value;
+    const eVal = entryEnd.value;
+    const hours = calcFormHours();
+    
+    if (!dVal || !sVal || !eVal) {
+      showToast("⚠ Completá fecha y horarios.", "warning");
+      return;
+    }
+    if (hours < 0.5 || hours > 24) {
+      showToast("⚠ Horas inválidas.", "warning");
+      return;
+    }
+    if (!entryTasks.value.trim() || !entrySchedule.value.trim()) {
+      showToast("⚠ Completá las tareas y horario habitual.", "warning");
+      return;
+    }
+
+    entryIdCounter++;
+    const [yy, mm, dd] = dVal.split('-');
+    
+    entriesList.push({
+      _id: entryIdCounter,
+      date: dVal,
+      dateFormatted: `${dd}/${mm}/${yy}`,
+      start_time: sVal,
+      end_time: eVal,
+      hours: hours,
+      template_name: entryTemplate.value,
+      tasks_desc: entryTasks.value.trim(),
+      habitual_schedule: entrySchedule.value.trim()
+    });
+
+    // Reset Form for convenience
+    const nextDay = new Date(yy, mm - 1, parseInt(dd) + 1);
+    const nyyyy  = nextDay.getFullYear();
+    const nmm    = String(nextDay.getMonth() + 1).padStart(2, "0");
+    const ndd    = String(nextDay.getDate()).padStart(2, "0");
+    entryDate.value = `${nyyyy}-${nmm}-${ndd}`;
+    entryTasks.value = ""; // Clear tasks for next entry
+    showToast("✅ Registro añadido.", "success");
+
+    renderEntries();
   });
+}
 
-  entriesBody.appendChild(tr);
+function renderEntries() {
+  entriesListContainer.innerHTML = "";
+  
+  if (entriesList.length === 0) {
+    emptyState.style.display = "block";
+    entriesListContainer.style.display = "none";
+  } else {
+    emptyState.style.display = "none";
+    entriesListContainer.style.display = "flex";
+    
+    entriesList.forEach((entry, idx) => {
+      const templateBadge = entry.template_name.includes("Unife") ? "bg-[#8b5cf6]/20 text-[#c4b5fd] border-[#8b5cf6]/30" :
+                            entry.template_name.includes("Feriados") ? "bg-[#f59e0b]/20 text-[#fcd34d] border-[#f59e0b]/30" :
+                            "bg-info/20 text-[#93c5fd] border-info/30";
+
+      const card = document.createElement("div");
+      card.className = "bg-white/5 border border-borderColor rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-row-in relative overflow-hidden group";
+      card.innerHTML = `
+        <div class="flex-1 flex flex-col gap-1.5 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-[0.95rem] font-bold text-textPrimary">${entry.dateFormatted}</span>
+            <span class="text-[0.75rem] font-medium text-textSecondary bg-black/20 rounded px-1.5 py-0.5">${entry.start_time} - ${entry.end_time}</span>
+            <span class="text-[0.7rem] px-2 py-0.5 rounded-full border ${templateBadge} truncate max-w-[150px]" title="${entry.template_name}">${entry.template_name.split(" ").slice(0, 3).join(" ")}...</span>
+          </div>
+          <p class="text-[0.8rem] text-textMuted truncate" title="${entry.tasks_desc}">${entry.tasks_desc}</p>
+        </div>
+        <div class="flex items-center justify-between sm:justify-end gap-4 sm:border-l sm:border-borderColor sm:pl-4">
+          <div class="flex flex-col text-right">
+            <span class="text-[1.2rem] font-bold text-textPrimary leading-none">${entry.hours}h</span>
+          </div>
+          <button class="bg-error/10 text-error border border-error/20 hover:bg-error hover:text-white rounded-md p-2 transition-all duration-200 cursor-pointer grid place-items-center" onclick="removeEntry(${entry._id})" title="Eliminar este registro">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      `;
+      entriesListContainer.appendChild(card);
+    });
+  }
+  
+  updateSummary();
   updateUI();
 }
 
-window.removeRow = function(btn) {
-  btn.closest("tr").remove();
-  renumberRows();
-  updateSummary();
-  updateUI();
+window.removeEntry = function(id) {
+  entriesList = entriesList.filter(e => e._id !== id);
+  renderEntries();
 };
 
 function clearAll() {
-  entriesBody.innerHTML = "";
-  rowCounter = 0;
-  updateSummary();
-  updateUI();
-}
-
-function renumberRows() {
-  entriesBody.querySelectorAll("tr").forEach((tr, i) => {
-    tr.querySelector(".row-num").textContent = i + 1;
-  });
+  entriesList = [];
+  renderEntries();
 }
 
 function updateUI() {
-  const count = entriesBody.querySelectorAll("tr").length;
-  const hasRows = count > 0;
-
-  emptyState.classList.toggle("visible", !hasRows);
+  const hasRows = entriesList.length > 0;
   btnClearAll.style.display = hasRows ? "inline-flex" : "none";
   btnSubmit.disabled = !hasRows || isRunning;
   if (btnPreview) btnPreview.disabled = !hasRows || isRunning;
 }
 
 function updateSummary() {
-  const rows  = entriesBody.querySelectorAll("tr");
-  const total = Array.from(rows).reduce((sum, tr) => {
-    const v = parseFloat(tr.querySelector("input[type=number]")?.value || 0);
-    return sum + (isNaN(v) ? 0 : v);
-  }, 0);
-  summaryCount.textContent = rows.length;
+  const total = entriesList.reduce((sum, e) => sum + e.hours, 0);
+  summaryCount.textContent = entriesList.length;
   summaryHours.textContent = `${total.toFixed(1)} h`;
 }
 
@@ -351,10 +391,8 @@ btnSubmit.addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         ...getCredentials(), 
-        entries,
-        template_name: inputTemplate.value,
-        tasks_desc: inputTasks.value.trim(),
-        habitual_schedule: inputSchedule.value.trim()
+        entries: entriesList 
+        // template_name, tasks_desc and habitual_schedule are now inside each entry object
       }),
     });
     const data = await res.json();
@@ -378,26 +416,9 @@ btnSubmit.addEventListener("click", async () => {
 });
 
 function collectEntries() {
-  const rows = entriesBody.querySelectorAll("tr");
-  const entries = [];
-  for (const tr of rows) {
-    const dateVal  = tr.querySelector("input[type=date]")?.value;
-    const startVal = tr.querySelector(`input[id^="start-"]`)?.value;
-    const endVal   = tr.querySelector(`input[id^="end-"]`)?.value;
-    const hoursVal = tr.querySelector(`input[type="number"][id^="hours-"]`)?.value;
-    
-    if (!dateVal || !startVal || !endVal) {
-      showToast("⚠ Hay campos incompletos en una fila.", "warning");
-      return null;
-    }
-    const hours = parseFloat(hoursVal);
-    if (isNaN(hours) || hours < 0.5 || hours > 24) {
-      showToast(`⚠ Horas inválidas en la fila con fecha ${dateVal}.`, "warning");
-      return null;
-    }
-    entries.push({ date: dateVal, start_time: startVal, end_time: endVal, hours });
-  }
-  return entries;
+  if (entriesList.length === 0) return null;
+  // Deep clone to avoid mutating state during request construction
+  return JSON.parse(JSON.stringify(entriesList));
 }
 
 // ─── Polling ─────────────────────────────────────────────────────────────────
@@ -502,9 +523,8 @@ function escapeHtml(str) {
 }
 
 // ─── Event listeners ─────────────────────────────────────────────────────────
-btnAddRow.addEventListener("click", () => { addRow(); updateSummary(); });
 btnClearAll.addEventListener("click", () => {
-  if (confirm("¿Borrar todos los registros?")) clearAll();
+  if (confirm("¿Borrar todos los registros listados?")) clearAll();
 });
 
 // ─── TABS AND HISTORY LOGIC ──────────────────────────────────────────────────
@@ -598,56 +618,42 @@ const previewOverlay = document.getElementById("preview-overlay");
 btnPreview.addEventListener("click", openPreview);
 
 function openPreview() {
-  // ── Asunto = template name (selected option text)
-  const templateSel = document.getElementById("input-template");
-  const templateVal = templateSel.value;
-  document.getElementById("pv-asunto").textContent = templateVal;
+  // ── Asunto = "Vista Previa de Múltiples Solicitudes" (Ya no es uno global)
+  document.getElementById("pv-asunto").textContent = "Múltiples plantillas (ver desglose)";
 
   // ── Nombre: use username field or env-creds label
   const nombreEl = document.getElementById("pv-nombre");
   const userVal  = (document.getElementById("input-user")?.value || "").trim();
   nombreEl.textContent = userVal || "— (credenciales desde entorno) —";
 
-  // ── Tareas y Horario
-  document.getElementById("pv-tasks").textContent    = document.getElementById("input-tasks").value.trim()    || "—";
-  document.getElementById("pv-schedule").textContent = document.getElementById("input-schedule").value.trim() || "—";
+  // Ocultar sección estática de Tareas y Horario, ya que ahora son por registro
+  document.getElementById("pv-tasks").parentElement.style.display = "none";
+  document.getElementById("pv-schedule").parentElement.style.display = "none";
 
   // ── Entry rows
   const container = document.getElementById("pv-entries-container");
   container.innerHTML = "";
 
-  const rows = entriesBody.querySelectorAll("tr");
-  if (rows.length === 0) {
+  if (entriesList.length === 0) {
     container.innerHTML = "<p style='color:#999; font-size:13px;'>Sin registros cargados.</p>";
   } else {
-    rows.forEach((tr, idx) => {
-      const dateVal  = tr.querySelector("input[type=date]")?.value  || "";
-      const startRaw = tr.querySelector(`input[id^="start-"]`)?.value || "";
-      const endRaw   = tr.querySelector(`input[id^="end-"]`)?.value   || "";
+    entriesList.forEach((entry, idx) => {
       // Solo el número de hora, sin minutos (igual que envía el bot: "07:00" → "7")
-      const startVal = startRaw ? String(parseInt(startRaw.split(":")[0], 10)) : "";
-      const endVal   = endRaw   ? String(parseInt(endRaw.split(":")[0],   10)) : "";
-      const hoursVal = parseFloat(tr.querySelector(`input[type="number"]`)?.value || "0") || "";
-
-      // Format date as DD/MM/YYYY
-      let dateFormatted = dateVal;
-      if (dateVal) {
-        const [yy, mm, dd] = dateVal.split("-");
-        dateFormatted = `${dd}/${mm}/${yy}`;
-      }
+      const startVal = entry.start_time ? String(parseInt(entry.start_time.split(":")[0], 10)) : "";
+      const endVal   = entry.end_time   ? String(parseInt(entry.end_time.split(":")[0],   10)) : "";
 
       const block = document.createElement("div");
       block.style.cssText = "border:1px solid #e0e0e0; border-radius:5px; padding:12px 14px; margin-bottom:10px; background:#fafafa;";
       block.innerHTML = `
-        <div style="font-size:11px; font-weight:700; color:#4a7c59; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Entrada ${idx + 1}</div>
+        <div style="font-size:11px; font-weight:700; color:#4a7c59; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Entrada ${idx + 1} — ${entry.template_name}</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
           <div>
             <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">Cantidad de horas extras:</div>
-            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block; min-width:50px;">${hoursVal}</div>
+            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block; min-width:50px;">${entry.hours}</div>
           </div>
           <div>
             <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">el día:</div>
-            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block;">${dateFormatted}</div>
+            <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block;">${entry.dateFormatted}</div>
           </div>
           <div>
             <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">Comprendidas entre las:</div>
@@ -657,7 +663,16 @@ function openPreview() {
             <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">y las:</div>
             <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:13px; background:#fff; display:inline-block;">${endVal}</div>
           </div>
-        </div>`;
+        </div>
+        <div style="margin-top:10px;">
+           <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">Tareas:</div>
+           <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:12px; background:#fff;">${entry.tasks_desc}</div>
+        </div>
+        <div style="margin-top:6px;">
+           <div style="font-size:11px; color:#c0392b; margin-bottom:3px;">Horario habitual:</div>
+           <div style="border:1px solid #ccc; border-radius:3px; padding:5px 9px; font-size:12px; background:#fff;">${entry.habitual_schedule}</div>
+        </div>
+        `;
       container.appendChild(block);
     });
   }

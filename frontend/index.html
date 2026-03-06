@@ -141,7 +141,7 @@
         <div>
           <h1 class="text-[1.3rem] md:text-[1.6rem] font-bold tracking-tight bg-gradient-to-br from-[#e8ecf8] to-accent2 bg-clip-text text-transparent">Mi Legajo</h1>
           <p class="text-[0.78rem] text-textSecondary mt-0.5 font-normal tracking-wide">Automatizador de Horas Extras</p>
-          <span class="text-[0.68rem] text-textMuted font-medium tracking-wide opacity-55 mt-0.5 inline-block">v1.0.32</span>
+          <span class="text-[0.68rem] text-textMuted font-medium tracking-wide opacity-55 mt-0.5 inline-block">v1.1.0</span>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 items-center justify-center">
@@ -202,32 +202,7 @@
           </div>
         </section>
 
-        <!-- Settings card -->
-        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 w-full" id="settings-card">
-          <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
-            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">⚙️</span> Configuración</h2>
-          </div>
-          <div class="p-4 md:p-5">
-            <div class="flex flex-col gap-3.5 w-full">
-              <div class="flex flex-col gap-1.5 w-full">
-                <label for="input-template" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tipo de Carga</label>
-                <select id="input-template" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow">
-                  <option value="Autorización Feriados TV">📅 Feriados TV</option>
-                  <option value="Autorización de horas extras TV Universal">📺 TV Universal - Horas Extras</option>
-                  <option value="Autorización de horas extras Unife">🎓 Unife - Horas Extras</option>
-                </select>
-              </div>
-              <div class="flex flex-col gap-1.5 w-full">
-                <label for="input-tasks" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tareas a realizar</label>
-                <input id="input-tasks" type="text" value="" placeholder="Descripción de las tareas" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
-              </div>
-              <div class="flex flex-col gap-1.5 w-full">
-                <label for="input-schedule" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Horario Laboral Habitual</label>
-                <input id="input-schedule" type="text" value="" placeholder="Ej: 09:00 a 18:00" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
-              </div>
-            </div>
-          </div>
-        </section>
+
 
         <!-- Summary card -->
         <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 w-full" id="summary-card">
@@ -251,38 +226,80 @@
       <!-- ── RIGHT COLUMN ── -->
       <div class="flex flex-col gap-5 w-full min-w-0">
 
-        <!-- Hours entry card -->
-        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 flex-1 flex flex-col w-full min-w-0" id="entries-card">
+        <!-- New Entry Form card -->
+        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 flex flex-col w-full min-w-0" id="entry-form-card">
           <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
-            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">📋</span> Registros de Horas Extras</h2>
-            <button id="btn-add-row" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.8rem] tracking-wide rounded-lg cursor-pointer px-[0.85rem] py-[0.38rem] transition-all duration-200 relative overflow-hidden bg-transparent text-textSecondary border border-borderColor hover:bg-white/5 hover:text-textPrimary active:scale-95 group" type="button">
-              <span>＋</span> Agregar día
-            </button>
+            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">📝</span> Nuevo Registro</h2>
           </div>
-          <div class="p-3 md:p-5 flex-1 flex flex-col relative w-full overflow-hidden">
-            <!-- Table Wrapper for horizontal scroll on mobile -->
-            <div class="overflow-x-auto w-full max-w-full pb-2 custom-scrollbar [-webkit-overflow-scrolling:touch]">
-              <table id="entries-table" class="w-full border-collapse min-w-[420px] md:min-w-full table-fixed md:table-auto">
-                <thead>
-                  <tr class="border-b border-borderColor">
-                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide w-[30px] md:w-auto">#</th>
-                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Fecha</th>
-                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Inicio</th>
-                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Fin</th>
-                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Horas</th>
-                    <th class="p-2 md:p-3 text-center text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide w-[40px] md:w-[60px]">Acción</th>
-                  </tr>
-                </thead>
-                <tbody id="entries-body">
-                  <!-- Rows injected by JS -->
-                </tbody>
-              </table>
-              <div id="empty-state" class="text-center py-8 md:py-12 px-4 text-textMuted w-full" style="display: block;">
-                <div class="text-[2.5rem] mb-3 opacity-50">📭</div>
-                <p class="text-[0.88rem] mb-1.5">Todavía no hay registros.</p>
-                <p class="text-[0.78rem] text-textMuted">Hacé click en <strong class="text-accent">+ Agregar día</strong> para empezar.</p>
+          <div class="p-4 md:p-5 flex flex-col gap-4">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5 w-full">
+                <label for="entry-date" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Fecha</label>
+                <input id="entry-date" type="date" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" style="color-scheme: dark;" />
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5 w-full">
+                  <label for="entry-start" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Inicio</label>
+                  <input id="entry-start" type="time" value="09:00" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" style="color-scheme: dark;" />
+                </div>
+                <div class="flex flex-col gap-1.5 w-full">
+                  <label for="entry-end" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Fin</label>
+                  <input id="entry-end" type="time" value="18:00" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" style="color-scheme: dark;" />
+                </div>
               </div>
             </div>
+
+            <div class="flex flex-col gap-1.5 w-full">
+              <label for="entry-template" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tipo de Carga</label>
+              <select id="entry-template" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow">
+                <option value="Autorización Feriados TV">📅 Feriados TV</option>
+                <option value="Autorización de horas extras TV Universal">📺 TV Universal - Horas Extras</option>
+                <option value="Autorización de horas extras Unife">🎓 Unife - Horas Extras</option>
+              </select>
+            </div>
+
+            <div class="flex flex-col gap-1.5 w-full">
+              <label for="entry-tasks" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tareas a realizar</label>
+              <input id="entry-tasks" type="text" placeholder="Ej: Opero sonido..." class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
+            </div>
+
+            <div class="flex flex-col gap-1.5 w-full">
+              <label for="entry-schedule" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Horario habitual</label>
+              <input id="entry-schedule" type="text" placeholder="Ej: 09:00 a 18:00" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
+            </div>
+
+            <div class="flex items-center justify-between mt-2 pt-4 border-t border-borderColor">
+              <div class="flex items-center gap-2">
+                <span class="text-[0.78rem] text-textMuted">Horas calculadas:</span>
+                <span id="entry-hours" class="text-[1.1rem] font-bold text-accent">9.0</span>
+              </div>
+              <button id="btn-add-entry" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.88rem] tracking-wide rounded-lg cursor-pointer px-[1rem] py-[0.6rem] transition-all duration-200 relative overflow-hidden bg-accent/10 text-accent border border-accent/25 hover:bg-accent/20 active:scale-95" type="button">
+                <span>＋ Agregar a la lista</span>
+              </button>
+            </div>
+            
+          </div>
+        </section>
+
+        <!-- Dynamic List Card -->
+        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 w-full flex flex-col">
+          <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
+            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">📋</span> Registros A Añadir</h2>
+          </div>
+          <div class="p-3 md:p-5 flex-1 flex flex-col relative w-full overflow-hidden">
+            
+            <div id="entries-list-container" class="flex flex-col gap-3 w-full">
+              <!-- Dynamically populated list items -->
+            </div>
+
+            <div id="empty-state" class="text-center py-8 px-4 text-textMuted w-full">
+              <div class="text-[2.5rem] mb-3 opacity-50">📭</div>
+              <p class="text-[0.88rem] mb-1.5">No has agregado ningún registro a enviar.</p>
+              <p class="text-[0.78rem] text-textMuted">Rellená el formulario y hacé click en <strong class="text-accent">+ Agregar a la lista</strong>.</p>
+            </div>
+
             <div class="flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 mt-5 pt-4 border-t border-borderColor w-full">
               <button id="btn-clear-all" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.92rem] md:text-[0.8rem] tracking-wide rounded-lg cursor-pointer px-[1rem] md:px-[0.85rem] py-[0.8rem] md:py-[0.38rem] transition-all duration-200 bg-transparent text-textSecondary border border-borderColor hover:bg-white/5 hover:text-textPrimary active:scale-95" type="button" style="display:none;">🗑 Borrar todo</button>
               <button id="btn-preview" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.92rem] md:text-[0.88rem] tracking-wide rounded-lg cursor-pointer px-[1rem] md:px-[1.1rem] py-[0.8rem] md:py-[0.6rem] transition-all duration-200 bg-accent/10 text-accent border border-accent/25 hover:bg-accent/20 active:scale-95 disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100" type="button" disabled>
@@ -294,6 +311,7 @@
                 <span id="submit-label" class="relative z-10">⚡ Enviar todo al Legajo</span>
               </button>
             </div>
+
           </div>
         </section>
 
