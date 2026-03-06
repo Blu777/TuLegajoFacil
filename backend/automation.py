@@ -15,8 +15,10 @@ and submit overtime hour entries one by one.
 
 import asyncio
 import logging
+import os
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 from playwright.async_api import async_playwright, Page, Browser, BrowserContext
@@ -24,6 +26,19 @@ from playwright.async_api import async_playwright, Page, Browser, BrowserContext
 from config import Credentials
 
 logger = logging.getLogger(__name__)
+
+# ─── Debug screenshots ────────────────────────────────────────────────────────
+DEBUG_SCREENSHOTS = os.getenv("DEBUG_SCREENSHOTS", "false").lower() == "true"
+SCREENSHOT_DIR = Path("/tmp/debug_screenshots")
+
+async def _screenshot(page: Page, name: str) -> None:
+    """Save a screenshot if DEBUG_SCREENSHOTS is enabled."""
+    if not DEBUG_SCREENSHOTS:
+        return
+    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    path = SCREENSHOT_DIR / f"{name}.png"
+    await page.screenshot(path=str(path), full_page=False)
+    logger.info(f"[DEBUG] Screenshot saved: {path}")
 
 
 # ─── Data model ──────────────────────────────────────────────────────────────
@@ -119,9 +134,8 @@ async def submit_entry(
         
         # Esperar a que el modal esté completamente visible (animación terminada)
         await page.wait_for_selector("#communicationModalModal", state="visible", timeout=10000)
-        
-        # Pequeño delay para que la animación de apertura termine y el select2 sea interactuable
         await asyncio.sleep(0.8)
+        await _screenshot(page, f"{entry.date}_1_modal_open")
 
         # 2. Seleccionar el template: forzar visibilidad y hacer click en el select2
         select2_btn = page.locator("#communicationModalModal .modal-body a.select2-choice").first
@@ -133,16 +147,22 @@ async def submit_entry(
         # Input del select2 dentro del modal — único en ese contexto
         search_input = page.locator("#communicationModalModal .modal-body input.select2-input")
         await search_input.wait_for(state="visible", timeout=5000)
+        await _screenshot(page, f"{entry.date}_2_select2_open")
         await search_input.fill("")
         await search_input.type(template_name, delay=60)
+        await _screenshot(page, f"{entry.date}_3_typed_template")
         
         # Esperar resultado y confirmar
         await page.wait_for_selector(".select2-results li:not(.select2-searching)", timeout=5000)
+        await _screenshot(page, f"{entry.date}_4_results_shown")
         await page.keyboard.press("Enter")
+        await asyncio.sleep(0.3)
+        await _screenshot(page, f"{entry.date}_5_template_selected")
         
         # 3. Esperar a que el HTML dinámico renderice los campos
         await page.wait_for_selector("#communicationModalContainer .source-html input", timeout=10000)
         await asyncio.sleep(0.3)
+        await _screenshot(page, f"{entry.date}_6_fields_loaded")
 
         # 4. Llenar los campos dinámicos de la lista .source-html
 

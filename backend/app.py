@@ -296,3 +296,33 @@ async def api_get_periods(user: str = Depends(verify_access)):
 async def api_get_history(period_id: str, user: str = Depends(verify_access)):
     """Devuelve el detalle de las horas cargadas en un periodo específico."""
     return get_entries_by_period(period_id)
+
+
+# ─── Debug Screenshots ────────────────────────────────────────────────────────
+
+@app.get("/api/debug/screenshots")
+async def list_screenshots(user: str = Depends(verify_access)):
+    """Lista las screenshots de debug disponibles (requiere DEBUG_SCREENSHOTS=true)."""
+    from pathlib import Path
+    screenshot_dir = Path("/tmp/debug_screenshots")
+    if not screenshot_dir.exists():
+        return {"screenshots": [], "note": "No hay screenshots. Activá DEBUG_SCREENSHOTS=true y corré el bot."}
+    files = sorted(screenshot_dir.glob("*.png"), key=lambda f: f.stat().st_mtime, reverse=True)
+    return {
+        "screenshots": [f.name for f in files],
+        "count": len(files),
+        "view_url": "/api/debug/screenshots/{name}"
+    }
+
+@app.get("/api/debug/screenshots/{name}")
+async def get_screenshot(name: str, user: str = Depends(verify_access)):
+    """Devuelve una screenshot de debug como imagen PNG."""
+    from pathlib import Path
+    import re
+    # Sanitize filename
+    if not re.match(r'^[\w\-\.]+\.png$', name):
+        raise HTTPException(status_code=400, detail="Nombre de archivo inválido")
+    path = Path("/tmp/debug_screenshots") / name
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Screenshot no encontrada")
+    return FileResponse(str(path), media_type="image/png")
