@@ -171,31 +171,43 @@ async def submit_entry(
         await _screenshot(page, f"{entry.date}_3_template_selected")
         
         # 3. Esperar a que el HTML dinámico renderice los campos
-        await page.wait_for_selector("#communicationModalContainer .source-html input", timeout=12000)
+        await page.wait_for_selector("input[data-name='CANTIDAD_HORAS']", timeout=12000)
         await asyncio.sleep(0.3)
         await _screenshot(page, f"{entry.date}_4_fields_loaded")
 
-        # 4. Llenar los campos dinámicos de la lista .source-html
-
-        # Campo 1: Cantidad de horas
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(1)", str(entry.hours))
+        # 4. Llenar los campos usando data-name (selectores estables del HTML real)
         
-        # Campo 2: Desde — solo el número de hora ("07:00" → "7")
+        # CANTIDAD_HORAS → número de horas (ej: 5, 9)
+        await page.fill("input[data-name='CANTIDAD_HORAS']", str(entry.hours))
+        
+        # horario1 → hora de inicio, solo número (ej: "07:00" → "7")
         start_hour = str(int(entry.start_time.split(":")[0]))
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(2)", start_hour)
+        await page.fill("input[data-name='horario1']", start_hour)
         
-        # Campo 3: Hasta — solo el número de hora ("18:00" → "18")
+        # horario2 → hora de fin, solo número (ej: "18:00" → "18")
         end_hour = str(int(entry.end_time.split(":")[0]))
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(3)", end_hour)
+        await page.fill("input[data-name='horario2']", end_hour)
         
-        # Campo 4 (input date especializado)
-        await page.fill("input.relec-datepicker", entry.formatted_date())
-
-        # Campo 5: Tareas
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(4)", tasks_desc)
+        # fecha → datepicker (readonly, usar JS para setear el valor)
+        date_val = entry.formatted_date()
+        await page.evaluate(f"""
+            var inp = document.querySelector("input[data-name='fecha']");
+            if (inp) {{
+                inp.removeAttribute('readonly');
+                inp.value = '{date_val}';
+                inp.dispatchEvent(new Event('change', {{bubbles: true}}));
+                inp.dispatchEvent(new Event('input', {{bubbles: true}}));
+            }}
+        """)
         
-        # Campo 6: Horario Habitual
-        await page.fill("#communicationModalContainer .source-html input.form-control:nth-of-type(5)", habitual_schedule)
+        # tareas → descripción de tareas
+        await page.fill("input[data-name='tareas']", tasks_desc)
+        
+        # horario → horario laboral habitual
+        await page.fill("input[data-name='horario']", habitual_schedule)
+        
+        # fuera_domicilio y noche_fuera ya tienen "NO" por defecto → no tocar
+        await _screenshot(page, f"{entry.date}_5_fields_filled")
 
         # 5. Enviar el formulario (abre el diálogo de firma con contraseña)
         await page.click("button.sign-send")
