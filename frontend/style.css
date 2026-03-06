@@ -210,6 +210,25 @@ input:focus, select.form-select:focus {
 }
 input::placeholder { color: var(--text-muted); }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5) brightness(1.5); cursor: pointer; }
+/* Time picker: forzar dark mode para que sea legible en navegador con modo oscuro */
+input[type="time"] {
+  color-scheme: dark;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 0.88rem;
+  padding: 0.55rem 0.6rem;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+input[type="time"]:focus {
+  border-color: var(--border-focus);
+  background: rgba(99,130,255,0.06);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.7) brightness(1.8); cursor: pointer; }
 select.form-select option { background: var(--bg-card); color: var(--text-primary); }
 
 .password-wrap { position: relative; }
@@ -434,4 +453,27 @@ td input[type="number"] { padding: 0.38rem 0.6rem; font-size: 0.84rem; }
   .row-num { font-size: 0.9rem; }
   
   .btn-del { padding: 12px 14px; font-size: 1.2rem; } /* Easy to press */
+  
+  /* Fix table overflow en mobile: inputs de time y date compactos */
+  td { max-width: 0; overflow: hidden; }
+  td:last-child { max-width: none; overflow: visible; }
+  td input[type="time"] {
+    width: 85px;
+    min-width: 0;
+    padding: 0.4rem 0.3rem;
+    font-size: 0.8rem;
+  }
+  td input[type="date"] {
+    width: 110px;
+    min-width: 0;
+    padding: 0.4rem 0.3rem;
+    font-size: 0.8rem;
+  }
+  td input[type="number"] {
+    width: 55px;
+    min-width: 0;
+  }
+  /* Hacer la tabla scrolleable horizontalmente en mobile */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #entries-table { min-width: 480px; }
 }
