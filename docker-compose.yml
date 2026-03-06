@@ -1,9 +1,12 @@
 services:
   legajo-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: legajo-automator:latest
+    # ── Para desarrollo local: descomentar las líneas de build ──────────────
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    # ── Para TrueNAS/producción: imagen de Docker Hub ───────────────────────
+    image: blu777/legajo-automator:latest
+    pull_policy: always   # Siempre verifica Docker Hub por una versión más nueva
     container_name: legajo-automator
     restart: unless-stopped
 
