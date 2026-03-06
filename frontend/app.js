@@ -313,18 +313,31 @@ function calcFormHours() {
 }
 
 function handleTemplateChange() {
-  const isFeriado = entryTemplate.value.toLowerCase().includes("feriado");
-  if (isFeriado) {
+  const templateVal = entryTemplate.value;
+  
+  if (!templateVal) {
     groupStandardTime.classList.add("hidden");
+    groupStandardTime.classList.remove("grid");
     groupStandardDetails.classList.add("hidden");
+    groupStandardDetails.classList.remove("flex");
+    groupFeriadoFields.classList.add("hidden");
+    groupFeriadoFields.classList.remove("flex");
+  } else if (templateVal.toLowerCase().includes("feriado")) {
+    groupStandardTime.classList.add("hidden");
+    groupStandardTime.classList.remove("grid");
+    groupStandardDetails.classList.add("hidden");
+    groupStandardDetails.classList.remove("flex");
     groupFeriadoFields.classList.remove("hidden");
     groupFeriadoFields.classList.add("flex");
   } else {
     groupStandardTime.classList.remove("hidden");
+    groupStandardTime.classList.add("grid");
     groupStandardDetails.classList.remove("hidden");
+    groupStandardDetails.classList.add("flex");
     groupFeriadoFields.classList.add("hidden");
     groupFeriadoFields.classList.remove("flex");
   }
+  
   calcFormHours();
 }
 

@@ -141,7 +141,7 @@
         <div>
           <h1 class="text-[1.3rem] md:text-[1.6rem] font-bold tracking-tight bg-gradient-to-br from-[#e8ecf8] to-accent2 bg-clip-text text-transparent">Mi Legajo</h1>
           <p class="text-[0.78rem] text-textSecondary mt-0.5 font-normal tracking-wide">Automatizador de Horas Extras</p>
-          <span class="text-[0.68rem] text-textMuted font-medium tracking-wide opacity-55 mt-0.5 inline-block">v1.2.2</span>
+          <span class="text-[0.68rem] text-textMuted font-medium tracking-wide opacity-55 mt-0.5 inline-block">v1.2.3</span>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 items-center justify-center">
@@ -245,7 +245,7 @@
                 <input id="entry-date" type="date" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" style="color-scheme: dark;" />
               </div>
               
-              <div id="group-standard-time" class="grid grid-cols-2 gap-3 transition-all duration-300 origin-top">
+              <div id="group-standard-time" class="hidden grid-cols-2 gap-3 transition-all duration-300 origin-top">
                 <div class="flex flex-col gap-1.5 w-full">
                   <label for="entry-start" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Inicio</label>
                   <input id="entry-start" type="time" value="09:00" class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" style="color-scheme: dark;" />
@@ -267,7 +267,7 @@
               </select>
             </div>
 
-            <div id="group-standard-details" class="flex flex-col gap-4 transition-all duration-300 origin-top">
+            <div id="group-standard-details" class="hidden flex-col gap-4 transition-all duration-300 origin-top">
               <div class="flex flex-col gap-1.5 w-full">
                 <label for="entry-tasks" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tareas a realizar</label>
                 <input id="entry-tasks" type="text" placeholder="Ej: Opero sonido..." class="bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow" />
