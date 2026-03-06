@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="overflow-x-hidden w-full max-w-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -13,144 +13,241 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/style.css" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bgPrimary: '#0a0e1a',
+            bgCard: 'rgba(16, 22, 45, 0.72)',
+            bgCardHover: 'rgba(22, 30, 58, 0.88)',
+            borderColor: 'rgba(99, 130, 255, 0.14)',
+            borderFocus: 'rgba(99, 130, 255, 0.55)',
+            accent: '#6382ff',
+            accentGlow: 'rgba(99, 130, 255, 0.35)',
+            accent2: '#a78bfa',
+            textPrimary: '#e8ecf8',
+            textSecondary: '#8b98c4',
+            textMuted: '#4e5a7a',
+            success: '#34d399',
+            error: '#f87171',
+            warning: '#fbbf24',
+            info: '#60a5fa',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'drift1': 'drift 18s ease-in-out infinite 0s',
+            'drift2': 'drift 18s ease-in-out infinite -6s',
+            'drift3': 'drift 18s ease-in-out infinite -12s',
+            'pulse-dot': 'pulse-dot 1s ease-in-out infinite',
+            'row-in': 'row-in 0.22s ease forwards',
+            'log-fade': 'log-fade 0.25s ease',
+            'spin': 'spin 0.7s linear infinite',
+            'toast-in': 'toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+          },
+          keyframes: {
+            drift: {
+              '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+              '33%': { transform: 'translate(30px, -20px) scale(1.05)' },
+              '66%': { transform: 'translate(-20px, 15px) scale(0.97)' },
+            },
+            'pulse-dot': {
+              '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+              '50%': { transform: 'scale(1.5)', opacity: '0.6' },
+            },
+            'row-in': {
+              'from': { opacity: '0', transform: 'translateY(-8px)' },
+              'to': { opacity: '1', transform: 'translateY(0)' },
+            },
+            'log-fade': {
+              'from': { opacity: '0', transform: 'translateX(-6px)' },
+              'to': { opacity: '1', transform: 'translateX(0)' },
+            },
+            'toast-in': {
+              'from': { opacity: '0', transform: 'translateX(40px) scale(0.9)' },
+              'to': { opacity: '1', transform: 'translateX(0) scale(1)' },
+            }
+          },
+          boxShadow: {
+            card: '0 4px 32px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.04) inset',
+            btn: '0 2px 12px rgba(99,130,255,0.3)',
+            btnHover: '0 4px 20px rgba(99,130,255,0.5)',
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .backdrop-blur-card {
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+      }
+      .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,130,255,0.3); border-radius: 3px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,130,255,0.5); }
+      
+      .input-base {
+        @apply bg-white/5 border border-borderColor rounded-lg text-textPrimary font-sans text-sm px-3.5 py-2.5 w-full outline-none transition-all duration-200 placeholder:text-textMuted focus:border-borderFocus focus:bg-accent/5 focus:ring-[3px] focus:ring-accentGlow;
+      }
+      
+      input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5) brightness(1.5); cursor: pointer; }
+      input[type="time"] { color-scheme: dark; }
+      input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.7) brightness(1.8); cursor: pointer; }
+      select option { @apply bg-bgPrimary text-textPrimary; }
+    }
+  </style>
 </head>
-<body>
+<body class="font-sans bg-bgPrimary text-textPrimary min-h-screen overflow-x-hidden relative break-words">
+
   <!-- ── SESSION LOGIN OVERLAY ── -->
-  <div id="login-overlay" style="display: flex; position: fixed; inset: 0; z-index: 9999; background: var(--bg-primary); align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-    <div class="card" style="width: 100%; max-width: 400px; margin: 1.5rem;">
-      <div class="card-header" style="justify-content: center; padding: 1.5rem;">
-        <h2 style="font-size: 1.2rem;"><span class="icon">🔒</span> Acceso a la App</h2>
+  <div id="login-overlay" class="fixed inset-0 z-[9999] bg-bgPrimary flex items-center justify-center backdrop-blur-md">
+    <div class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[20px] shadow-card w-full max-w-[400px] m-6 overflow-hidden">
+      <div class="flex items-center justify-center p-6 border-b border-borderColor">
+        <h2 class="text-[1.2rem] font-semibold text-textPrimary flex items-center gap-2 tracking-wide"><span class="text-base">🔒</span> Acceso a la App</h2>
       </div>
-      <div class="card-body">
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; text-align: center;">Por favor, ingresá las credenciales de administrador para continuar.</p>
-        <div class="field-group">
-          <div class="field">
-            <label for="app-user">Nombre de usuario</label>
-            <input id="app-user" type="text" placeholder="Tu nombre de usuario" autocomplete="username" />
+      <div class="p-6">
+        <p class="text-[0.85rem] text-textSecondary mb-6 text-center">Por favor, ingresá las credenciales de administrador para continuar.</p>
+        <div class="flex flex-col gap-4 mb-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="app-user" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Nombre de usuario</label>
+            <input id="app-user" type="text" placeholder="Tu nombre de usuario" autocomplete="username" class="input-base" />
           </div>
-          <div class="field">
-            <label for="app-pass">Contraseña</label>
-            <input id="app-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+          <div class="flex flex-col gap-1.5">
+            <label for="app-pass" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Contraseña</label>
+            <input id="app-pass" type="password" placeholder="••••••••" autocomplete="current-password" class="input-base" />
           </div>
         </div>
-        <button id="btn-app-login" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Iniciar Sesión</button>
+        <button id="btn-app-login" class="w-full mt-4 flex items-center justify-center gap-2 font-sans font-semibold text-[0.94rem] tracking-wide rounded-lg cursor-pointer px-[1.6rem] py-[0.75rem] transition-all duration-200 relative overflow-hidden bg-gradient-to-br from-accent to-[#4f6bff] text-white shadow-btn hover:shadow-btnHover hover:-translate-y-[1px] active:scale-95 disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100 group">
+          <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+          <span class="relative z-10">Iniciar Sesión</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="bg-orbs">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
+  <!-- Animated background orbs -->
+  <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="absolute rounded-full blur-[80px] opacity-[0.18] animate-drift1 bg-[#4062ff] w-[min(520px,90vw)] h-[min(520px,90vw)] -top-[120px] -left-[80px]"></div>
+    <div class="absolute rounded-full blur-[80px] opacity-[0.18] animate-drift2 bg-[#9c62ff] w-[min(400px,80vw)] h-[min(400px,80vw)] -bottom-[60px] right-[5%]"></div>
+    <div class="absolute rounded-full blur-[80px] opacity-[0.18] animate-drift3 bg-[#24d1c8] w-[min(300px,70vw)] h-[min(300px,70vw)] top-[40%] left-[50%]"></div>
   </div>
 
-  <main class="container" id="main-app-container" style="display: none;">
+  <main class="relative z-10 w-full max-w-[1140px] mx-auto px-3 sm:px-6 py-8 pb-16 box-border" id="main-app-container" style="display: none;">
+    
     <!-- Header -->
-    <header class="app-header">
-      <div class="brand">
-        <span class="brand-icon">⏱</span>
+    <header class="flex flex-col md:flex-row items-center justify-between gap-3 mb-8 pb-5 border-b border-borderColor text-center md:text-left">
+      <div class="flex flex-col md:flex-row items-center gap-4">
+        <span class="text-[2.2rem] drop-shadow-[0_0_12px_rgba(99,130,255,0.35)]">⏱</span>
         <div>
-          <h1>Mi Legajo</h1>
-          <p class="subtitle">Automatizador de Horas Extras</p>
-          <span class="app-version">v1.0.31</span>
+          <h1 class="text-[1.3rem] md:text-[1.6rem] font-bold tracking-tight bg-gradient-to-br from-[#e8ecf8] to-accent2 bg-clip-text text-transparent">Mi Legajo</h1>
+          <p class="text-[0.78rem] text-textSecondary mt-0.5 font-normal tracking-wide">Automatizador de Horas Extras</p>
+          <span class="text-[0.68rem] text-textMuted font-medium tracking-wide opacity-55 mt-0.5 inline-block">v1.0.32</span>
         </div>
       </div>
-      <div style="display: flex; gap: 1rem; align-items: center;">
-        <div id="status-badge" class="status-badge badge-idle">
-          <span class="badge-dot"></span>
+      <div class="flex flex-wrap gap-2 items-center justify-center">
+        <!-- Status badge classes adjusted via JS: badge-idle, badge-running, etc. Here we emulate badge-idle -->
+        <div id="status-badge" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[0.75rem] md:text-[0.8rem] font-medium border border-[#8b98c4]/30 text-textSecondary transition-all duration-200">
+          <span class="w-2 h-2 rounded-full bg-textMuted flex-shrink-0"></span>
           <span id="status-text">Listo</span>
         </div>
-        <button id="btn-logout" class="btn btn-ghost btn-sm" title="Cerrar sesión">Salir</button>
+        <button id="btn-logout" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.8rem] tracking-wide rounded-lg cursor-pointer px-[0.85rem] py-[0.38rem] transition-all duration-200 relative overflow-hidden bg-transparent text-textSecondary border border-borderColor hover:bg-white/5 hover:text-textPrimary active:scale-95 group" title="Cerrar sesión">
+          <span class="relative z-10">Salir</span>
+        </button>
       </div>
     </header>
 
     <!-- TABS NAV -->
-    <nav class="tabs-nav card" style="margin-bottom: 2rem;">
-      <div class="card-body" style="padding: 0.5rem; display: flex; gap: 0.5rem;">
-        <button id="tab-submit" class="tab-btn active">📝 Cargar Horas</button>
-        <button id="tab-history" class="tab-btn">📜 Historial de Envíos</button>
+    <nav class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] shadow-card overflow-hidden transition-all duration-200 mb-8">
+      <div class="p-2 flex flex-col md:flex-row gap-2">
+        <button id="tab-submit" class="flex-1 min-w-[120px] bg-accent text-white shadow-[0_0_10px_rgba(99,130,255,0.35)] border-none rounded-lg px-2 sm:px-4 py-3 md:py-3 font-sans text-[0.95rem] md:text-[1rem] font-medium cursor-pointer transition-all duration-200 whitespace-nowrap overflow-hidden text-ellipsis">📝 Cargar Horas</button>
+        <button id="tab-history" class="flex-1 min-w-[120px] bg-transparent text-textMuted hover:bg-white/5 hover:text-textSecondary border-none rounded-lg px-2 sm:px-4 py-3 md:py-3 font-sans text-[0.95rem] md:text-[1rem] font-medium cursor-pointer transition-all duration-200 whitespace-nowrap overflow-hidden text-ellipsis">📜 Historial de Envíos</button>
       </div>
     </nav>
 
     <!-- VIEW: SUBMIT HOURS -->
-    <div id="view-submit" class="grid-layout">
+    <div id="view-submit" class="grid grid-cols-1 md:grid-cols-[minmax(260px,300px)_1fr] gap-6 items-start">
+      
       <!-- ── LEFT COLUMN ── -->
-      <div class="left-col">
-
+      <div class="flex flex-col gap-5 w-full">
+        
         <!-- Credentials card -->
-        <section class="card" id="credentials-card">
-          <div class="card-header">
-            <h2><span class="icon">🔑</span> Credenciales</h2>
-            <span class="hint" title="Si las credenciales están en variables de entorno, estos campos son opcionales.">?</span>
+        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 w-full" id="credentials-card">
+          <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
+            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">🔑</span> Credenciales</h2>
+            <span class="w-5 h-5 rounded-full border border-borderColor text-textMuted text-[0.72rem] font-semibold grid place-items-center cursor-help" title="Si las credenciales están en variables de entorno, estos campos son opcionales.">?</span>
           </div>
-          <div class="card-body">
-            <div class="env-notice" id="env-notice" style="display:none;">
-              <span class="env-icon">🌿</span>
-              Credenciales cargadas desde variables de entorno.
+          <div class="p-4 md:p-5">
+            <div class="bg-success/10 border border-success/25 rounded-lg px-4 py-2.5 text-[0.78rem] md:text-[0.82rem] text-success mb-3 flex items-center gap-2 break-words" id="env-notice" style="display:none;">
+              <span class="text-base">🌿</span> Credenciales cargadas desde variables de entorno.
             </div>
-            <div class="field-group" id="creds-fields">
-              <div class="field">
-                <label for="input-user">Usuario</label>
-                <input id="input-user" type="text" placeholder="Tu usuario de TuLegajo" autocomplete="username" />
+            <div class="flex flex-col gap-3.5 mb-4 w-full" id="creds-fields">
+              <div class="flex flex-col gap-1.5 w-full">
+                <label for="input-user" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Usuario</label>
+                <input id="input-user" type="text" placeholder="Tu usuario de TuLegajo" autocomplete="username" class="input-base" />
               </div>
-              <div class="field">
-                <label for="input-pass">Contraseña</label>
-                <div class="password-wrap">
-                  <input id="input-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
-                  <button id="btn-toggle-pass" class="btn-icon" type="button" title="Mostrar/ocultar contraseña" aria-label="Toggle password visibility">
-                    <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              <div class="flex flex-col gap-1.5 w-full">
+                <label for="input-pass" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Contraseña</label>
+                <div class="relative w-full">
+                  <input id="input-pass" type="password" placeholder="••••••••" autocomplete="current-password" class="input-base pr-10" />
+                  <button id="btn-toggle-pass" class="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-textMuted grid place-items-center p-1 rounded transition-colors duration-200 hover:text-textSecondary" type="button" title="Mostrar/ocultar contraseña" aria-label="Toggle password visibility">
+                    <svg id="eye-open" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg id="eye-closed" class="w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                   </button>
                 </div>
               </div>
             </div>
-            <button id="btn-test-login" class="btn btn-secondary btn-sm" type="button">
-              <span class="btn-icon-left">🔗</span> Probar conexión
+            <button id="btn-test-login" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.8rem] tracking-wide rounded-lg cursor-pointer px-[0.85rem] py-[0.38rem] transition-all duration-200 relative overflow-hidden bg-accent/10 text-accent border border-accent/25 hover:bg-accent/20 active:scale-95 group w-auto" type="button">
+              <span class="text-[0.9rem] relative z-10">🔗</span> <span class="relative z-10">Probar conexión</span>
             </button>
           </div>
         </section>
 
         <!-- Settings card -->
-        <section class="card" id="settings-card">
-          <div class="card-header">
-            <h2><span class="icon">⚙️</span> Configuración</h2>
+        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 w-full" id="settings-card">
+          <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
+            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">⚙️</span> Configuración</h2>
           </div>
-          <div class="card-body">
-            <div class="field-group">
-              <div class="field">
-                <label for="input-template">Tipo de Carga</label>
-                <select id="input-template" class="form-select">
+          <div class="p-4 md:p-5">
+            <div class="flex flex-col gap-3.5 w-full">
+              <div class="flex flex-col gap-1.5 w-full">
+                <label for="input-template" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tipo de Carga</label>
+                <select id="input-template" class="input-base">
                   <option value="Autorización Feriados TV">📅 Feriados TV</option>
                   <option value="Autorización de horas extras TV Universal">📺 TV Universal - Horas Extras</option>
                   <option value="Autorización de horas extras Unife">🎓 Unife - Horas Extras</option>
                 </select>
               </div>
-              <div class="field">
-                <label for="input-tasks">Tareas a realizar</label>
-                <input id="input-tasks" type="text" value="" placeholder="Descripción de las tareas" />
+              <div class="flex flex-col gap-1.5 w-full">
+                <label for="input-tasks" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Tareas a realizar</label>
+                <input id="input-tasks" type="text" value="" placeholder="Descripción de las tareas" class="input-base" />
               </div>
-              <div class="field">
-                <label for="input-schedule">Horario Laboral Habitual</label>
-                <input id="input-schedule" type="text" value="" placeholder="Ej: 09:00 a 18:00" />
+              <div class="flex flex-col gap-1.5 w-full">
+                <label for="input-schedule" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Horario Laboral Habitual</label>
+                <input id="input-schedule" type="text" value="" placeholder="Ej: 09:00 a 18:00" class="input-base" />
               </div>
             </div>
           </div>
         </section>
 
         <!-- Summary card -->
-        <section class="card" id="summary-card">
-          <div class="card-header">
-            <h2><span class="icon">📊</span> Resumen</h2>
+        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 w-full" id="summary-card">
+          <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
+            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">📊</span> Resumen</h2>
           </div>
-          <div class="card-body summary-grid">
-            <div class="summary-item">
-              <span class="summary-label">Registros</span>
-              <span class="summary-value" id="summary-count">0</span>
+          <div class="p-4 md:p-5 grid grid-cols-2 gap-2 md:gap-3 w-full">
+            <div class="bg-white/5 border border-borderColor rounded-lg px-3 py-3 md:px-4 md:py-3.5 flex flex-col gap-1">
+              <span class="text-[0.72rem] text-textMuted uppercase tracking-wider">Registros</span>
+              <span class="text-[1.3rem] md:text-[1.6rem] font-bold text-textPrimary" id="summary-count">0</span>
             </div>
-            <div class="summary-item">
-              <span class="summary-label">Total horas</span>
-              <span class="summary-value" id="summary-hours">0.0 h</span>
+            <div class="bg-white/5 border border-borderColor rounded-lg px-3 py-3 md:px-4 md:py-3.5 flex flex-col gap-1">
+              <span class="text-[0.72rem] text-textMuted uppercase tracking-wider">Total horas</span>
+              <span class="text-[1.3rem] md:text-[1.6rem] font-bold text-textPrimary" id="summary-hours">0.0 h</span>
             </div>
           </div>
         </section>
@@ -158,60 +255,62 @@
       </div>
 
       <!-- ── RIGHT COLUMN ── -->
-      <div class="right-col">
+      <div class="flex flex-col gap-5 w-full min-w-0">
 
         <!-- Hours entry card -->
-        <section class="card entries-card">
-          <div class="card-header">
-            <h2><span class="icon">📋</span> Registros de Horas Extras</h2>
-            <button id="btn-add-row" class="btn btn-ghost btn-sm" type="button">
+        <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 hover:border-[#6382ff]/20 flex-1 flex flex-col w-full min-w-0" id="entries-card">
+          <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
+            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">📋</span> Registros de Horas Extras</h2>
+            <button id="btn-add-row" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.8rem] tracking-wide rounded-lg cursor-pointer px-[0.85rem] py-[0.38rem] transition-all duration-200 relative overflow-hidden bg-transparent text-textSecondary border border-borderColor hover:bg-white/5 hover:text-textPrimary active:scale-95 group" type="button">
               <span>＋</span> Agregar día
             </button>
           </div>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table id="entries-table">
+          <div class="p-3 md:p-5 flex-1 flex flex-col relative w-full overflow-hidden">
+            <!-- Table Wrapper for horizontal scroll on mobile -->
+            <div class="overflow-x-auto w-full max-w-full pb-2 custom-scrollbar [-webkit-overflow-scrolling:touch]">
+              <table id="entries-table" class="w-full border-collapse min-w-[420px] md:min-w-full table-fixed md:table-auto">
                 <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Fecha</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
-                    <th>Horas</th>
-                    <th class="col-actions">Acción</th>
+                  <tr class="border-b border-borderColor">
+                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide w-[30px] md:w-auto">#</th>
+                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Fecha</th>
+                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Inicio</th>
+                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Fin</th>
+                    <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Horas</th>
+                    <th class="p-2 md:p-3 text-center text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide w-[40px] md:w-[60px]">Acción</th>
                   </tr>
                 </thead>
                 <tbody id="entries-body">
                   <!-- Rows injected by JS -->
                 </tbody>
               </table>
-              <div id="empty-state" class="empty-state">
-                <div class="empty-icon">📭</div>
-                <p>Todavía no hay registros.</p>
-                <p class="empty-hint">Hacé click en <strong>+ Agregar día</strong> para empezar.</p>
+              <div id="empty-state" class="text-center py-8 md:py-12 px-4 text-textMuted w-full" style="display: block;">
+                <div class="text-[2.5rem] mb-3 opacity-50">📭</div>
+                <p class="text-[0.88rem] mb-1.5">Todavía no hay registros.</p>
+                <p class="text-[0.78rem] text-textMuted">Hacé click en <strong class="text-accent">+ Agregar día</strong> para empezar.</p>
               </div>
             </div>
-            <div class="entries-footer">
-              <button id="btn-clear-all" class="btn btn-ghost btn-sm" type="button" style="display:none;">🗑 Borrar todo</button>
-              <button id="btn-preview" class="btn btn-secondary" type="button" disabled>
+            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 mt-5 pt-4 border-t border-borderColor w-full">
+              <button id="btn-clear-all" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.92rem] md:text-[0.8rem] tracking-wide rounded-lg cursor-pointer px-[1rem] md:px-[0.85rem] py-[0.8rem] md:py-[0.38rem] transition-all duration-200 bg-transparent text-textSecondary border border-borderColor hover:bg-white/5 hover:text-textPrimary active:scale-95" type="button" style="display:none;">🗑 Borrar todo</button>
+              <button id="btn-preview" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.92rem] md:text-[0.88rem] tracking-wide rounded-lg cursor-pointer px-[1rem] md:px-[1.1rem] py-[0.8rem] md:py-[0.6rem] transition-all duration-200 bg-accent/10 text-accent border border-accent/25 hover:bg-accent/20 active:scale-95 disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100" type="button" disabled>
                 👁 Previsualizar
               </button>
-              <button id="btn-submit" class="btn btn-primary" type="button" disabled>
-                <span class="btn-spinner" id="submit-spinner" style="display:none;"></span>
-                <span id="submit-label">⚡ Enviar todo al Legajo</span>
+              <button id="btn-submit" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.92rem] md:text-[0.94rem] tracking-wide rounded-lg cursor-pointer px-[1rem] md:px-[1.6rem] py-[0.8rem] md:py-[0.75rem] transition-all duration-200 bg-gradient-to-br from-accent to-[#4f6bff] text-white shadow-btn hover:shadow-btnHover hover:-translate-y-[1px] active:scale-95 disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100 group relative overflow-hidden" type="button" disabled>
+                <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                <span class="w-[14px] h-[14px] border-2 border-white/30 border-t-white rounded-full animate-spin z-10" id="submit-spinner" style="display:none;"></span>
+                <span id="submit-label" class="relative z-10">⚡ Enviar todo al Legajo</span>
               </button>
             </div>
           </div>
         </section>
 
         <!-- Log card -->
-        <section class="card log-card" id="log-card" style="display:none;">
-          <div class="card-header">
-            <h2><span class="icon">📟</span> Log de ejecución</h2>
-            <button id="btn-dismiss-log" class="btn btn-ghost btn-sm" type="button">✕ Cerrar</button>
+        <section class="bg-bgCard backdrop-blur-card border border-accent/20 rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 w-full" id="log-card" style="display:none;">
+          <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
+            <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">📟</span> Log de ejecución</h2>
+            <button id="btn-dismiss-log" class="flex items-center justify-center gap-2 font-sans font-semibold text-[0.8rem] tracking-wide rounded-lg cursor-pointer px-[0.85rem] py-[0.38rem] transition-all duration-200 relative overflow-hidden bg-transparent text-textSecondary border border-borderColor hover:bg-white/5 hover:text-textPrimary active:scale-95" type="button">✕ Cerrar</button>
           </div>
-          <div class="card-body">
-            <div id="log-output" class="log-output"></div>
+          <div class="p-4 md:p-5">
+            <div id="log-output" class="bg-black/35 rounded-lg border border-borderColor p-3.5 md:p-4 font-mono text-[0.82rem] leading-[1.7] max-h-[280px] overflow-y-auto scroll-smooth custom-scrollbar w-full break-words whitespace-pre-wrap"></div>
           </div>
         </section>
 
@@ -219,39 +318,39 @@
     </div> <!-- END VIEW: SUBMIT HOURS -->
 
     <!-- VIEW: HISTORY -->
-    <div id="view-history" style="display: none;">
-      <section class="card">
-        <div class="card-header">
-          <h2><span class="icon">🔍</span> Registro por Periodos</h2>
+    <div id="view-history" style="display: none;" class="w-full">
+      <section class="bg-bgCard backdrop-blur-card border border-borderColor rounded-[14px] md:rounded-[20px] shadow-card overflow-hidden transition-all duration-200 w-full">
+        <div class="flex items-center justify-between p-4 md:p-5 border-b border-borderColor">
+          <h2 class="text-[0.92rem] font-semibold text-textPrimary flex items-center gap-2 tracking-[0.1px]"><span class="text-base">🔍</span> Registro por Periodos</h2>
         </div>
-        <div class="card-body">
-          <div class="field" style="max-width: 400px; margin-bottom: 1.5rem;">
-            <label for="period-select">Selecciona el Periodo (21 al 20)</label>
-            <select id="period-select" class="form-select">
+        <div class="p-4 md:p-5">
+          <div class="flex flex-col gap-1.5 max-w-[400px] mb-6 w-full">
+            <label for="period-select" class="text-[0.78rem] font-medium text-textSecondary tracking-wide">Selecciona el Periodo (21 al 20)</label>
+            <select id="period-select" class="input-base">
               <option value="">Cargando periodos...</option>
             </select>
           </div>
           
-          <div id="history-summary" class="summary-area" style="margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-primary);">
-             Total Horas de este Periodo: <strong id="history-total-hours" style="color: var(--accent); font-size: 1.4rem;">0</strong> hs.
+          <div id="history-summary" class="mb-6 text-[1.1rem] text-textPrimary w-full">
+             Total Horas de este Periodo: <strong id="history-total-hours" class="text-accent text-[1.4rem]">0</strong> hs.
           </div>
 
-          <div class="table-wrap">
-            <table class="entries-table" id="history-table" style="display: none;">
+          <div class="overflow-x-auto w-full max-w-full pb-2 custom-scrollbar [-webkit-overflow-scrolling:touch]">
+            <table id="history-table" class="w-full border-collapse min-w-[500px] table-fixed md:table-auto" style="display: none;">
               <thead>
-                <tr>
-                  <th>Fecha Trabajo</th>
-                  <th>Horas</th>
-                  <th>Plantilla y Tareas</th>
-                  <th>Enviado el</th>
+                <tr class="border-b border-borderColor">
+                  <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Fecha Trabajo</th>
+                  <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Horas</th>
+                  <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Plantilla y Tareas</th>
+                  <th class="p-2 md:p-3 text-left text-[0.78rem] md:text-[0.72rem] font-semibold text-textMuted uppercase tracking-wide">Enviado el</th>
                 </tr>
               </thead>
               <tbody id="history-list">
               </tbody>
             </table>
-            <div id="history-empty" class="empty-state visible">
-              <div class="empty-icon">📭</div>
-              <p>Esperando selección o no hay datos.</p>
+            <div id="history-empty" class="text-center py-8 md:py-12 px-4 text-textMuted w-full" style="display: block;">
+              <div class="text-[2.5rem] mb-3 opacity-50">📭</div>
+              <p class="text-[0.88rem] mb-1.5">Esperando selección o no hay datos.</p>
             </div>
           </div>
         </div>
@@ -261,34 +360,34 @@
   </main>
 
   <!-- ── PREVIEW MODAL ── -->
-  <div id="preview-overlay" style="display:none; position:fixed; inset:0; z-index:8000; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;">
-    <div id="preview-modal" style="background:#fff; color:#333; border-radius:8px; width:100%; max-width:660px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); font-family: Arial, sans-serif; font-size:14px;">
+  <div id="preview-overlay" class="fixed inset-0 z-[8000] bg-black/65 backdrop-blur-[4px] items-center justify-center p-4" style="display:none;">
+    <div id="preview-modal" class="bg-white text-[#333] rounded-lg w-full max-w-[660px] max-h-[92vh] overflow-y-auto shadow-[0_20px_60px_rgba(0,0,0,0.4)] font-sans text-[14px]">
       
       <!-- Header -->
-      <div style="background:#f8f8f8; border-bottom:1px solid #ddd; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; border-radius:8px 8px 0 0;">
-        <span style="color:#4a7c59; font-weight:600; font-size:15px;">✈ Enviar comunicación</span>
-        <button onclick="closePreview()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#888; line-height:1;">&times;</button>
+      <div class="bg-[#f8f8f8] border-b border-[#ddd] p-[14px_20px] flex items-center justify-between rounded-[8px_8px_0_0]">
+        <span class="text-[#4a7c59] font-semibold text-[15px]">✈ Enviar comunicación</span>
+        <button onclick="closePreview()" class="bg-transparent border-none cursor-pointer text-[18px] text-[#888] leading-none hover:text-[#555]">&times;</button>
       </div>
 
       <!-- Content -->
-      <div style="padding:20px 24px;">
+      <div class="p-[20px_24px]">
         
         <!-- Asunto -->
-        <div style="margin-bottom:16px;">
-          <div style="color:#4a7c59; font-weight:700; margin-bottom:6px; font-size:14px;">Asunto</div>
-          <div id="pv-asunto" style="background:#f0f0f0; border:1px solid #ddd; border-radius:4px; padding:8px 12px; font-size:14px; color:#333;"></div>
+        <div class="mb-4">
+          <div class="text-[#4a7c59] font-bold mb-1.5 text-[14px]">Asunto</div>
+          <div id="pv-asunto" class="bg-[#f0f0f0] border border-[#ddd] rounded p-[8px_12px] text-[14px] text-[#333]"></div>
         </div>
 
         <!-- Mensaje box -->
-        <div style="border:2px dashed #ccc; border-radius:4px; padding:18px; margin-bottom:16px;">
-          <div style="color:#4a7c59; font-weight:700; margin-bottom:14px; font-size:14px;">Mensaje</div>
+        <div class="border-2 border-dashed border-[#ccc] rounded p-[18px] mb-4">
+          <div class="text-[#4a7c59] font-bold mb-3.5 text-[14px]">Mensaje</div>
           
-          <div style="margin-bottom:10px;">
-            <span style="color:#c0392b; font-size:13px;">Nombre: </span>
-            <span id="pv-nombre" style="font-size:13px;"></span>
+          <div class="mb-2.5">
+            <span class="text-[#c0392b] text-[13px]">Nombre: </span>
+            <span id="pv-nombre" class="text-[13px]"></span>
           </div>
 
-          <div style="margin-bottom:12px; font-size:13px;">
+          <div class="mb-3 text-[13px]">
             Solicito autorización para realizar la siguiente cantidad de horas extras:
           </div>
           
@@ -296,37 +395,39 @@
           <div id="pv-entries-container"></div>
 
           <!-- Static fields -->
-          <div style="margin-top:14px;">
-            <div style="font-size:13px; margin-bottom:4px; color:#c0392b;">Tareas a realizar:</div>
-            <div id="pv-tasks" style="border:1px solid #ccc; border-radius:3px; padding:6px 10px; min-height:28px; font-size:13px; background:#fefefe;"></div>
+          <div class="mt-3.5">
+            <div class="text-[13px] mb-1 text-[#c0392b]">Tareas a realizar:</div>
+            <div id="pv-tasks" class="border border-[#ccc] rounded p-[6px_10px] min-h-[28px] text-[13px] bg-[#fefefe]"></div>
           </div>
-          <div style="margin-top:12px;">
-            <div style="font-size:13px; margin-bottom:4px; color:#c0392b;">Horario Laboral habitual:</div>
-            <div id="pv-schedule" style="border:1px solid #ccc; border-radius:3px; padding:6px 10px; min-height:28px; font-size:13px; background:#fefefe;"></div>
+          <div class="mt-3">
+            <div class="text-[13px] mb-1 text-[#c0392b]">Horario Laboral habitual:</div>
+            <div id="pv-schedule" class="border border-[#ccc] rounded p-[6px_10px] min-h-[28px] text-[13px] bg-[#fefefe]"></div>
           </div>
 
           <!-- Dropdowns (always NO) -->
-          <div style="margin-top:14px; font-size:13px;">¿Finaliza fuera de su domicilio laboral?</div>
-          <div style="margin-top:4px; display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:4px; padding:4px 10px; font-size:13px; background:#fff; min-width:130px;">NO <span style="margin-left:auto;">▾</span></div>
+          <div class="mt-3.5 text-[13px]">¿Finaliza fuera de su domicilio laboral?</div>
+          <div class="mt-1 inline-flex items-center gap-2 border border-[#ccc] rounded p-[4px_10px] text-[13px] bg-white min-w-[130px]">NO <span class="ml-auto">▾</span></div>
 
-          <div style="margin-top:12px; font-size:13px;">¿El trabajo a realizar requiere pasar la noche fuera de su domicilio?</div>
-          <div style="margin-top:4px; display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:4px; padding:4px 10px; font-size:13px; background:#fff; min-width:130px;">NO <span style="margin-left:auto;">▾</span></div>
+          <div class="mt-3 text-[13px]">¿El trabajo a realizar requiere pasar la noche fuera de su domicilio?</div>
+          <div class="mt-1 inline-flex items-center gap-2 border border-[#ccc] rounded p-[4px_10px] text-[13px] bg-white min-w-[130px]">NO <span class="ml-auto">▾</span></div>
         </div>
 
         <!-- Attachment notice -->
-        <div style="background:#e8f4fd; border:1px solid #b8d4ea; border-radius:4px; padding:8px 12px; font-size:12px; color:#555; margin-bottom:12px;">
+        <div class="bg-[#e8f4fd] border border-[#b8d4ea] rounded p-[8px_12px] text-[12px] text-[#555] mb-3">
           ⚠ Tamaño máximo de archivo permitido: 50MB
         </div>
-        <div style="font-size:20px;">📎</div>
+        <div class="text-[20px]">📎</div>
       </div>
 
       <!-- Footer buttons -->
-      <div style="border-top:1px solid #ddd; padding:12px 20px; display:flex; gap:10px; justify-content:flex-end; background:#fafafa; border-radius:0 0 8px 8px;">
-        <div style="font-size:11px; color:#888; align-self:center; margin-right:auto;">Vista previa — sólo lectura</div>
-        <button onclick="closePreview()" style="background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:8px 18px; font-size:13px; cursor:pointer; font-weight:600;">✕ Cerrar</button>
+      <div class="border-t border-[#ddd] p-[12px_20px] flex gap-2.5 justify-end bg-[#fafafa] rounded-[0_0_8px_8px]">
+        <div class="text-[11px] text-[#888] self-center mr-auto">Vista previa — sólo lectura</div>
+        <button onclick="closePreview()" class="bg-[#e74c3c] text-white border-none rounded p-[8px_18px] text-[13px] cursor-pointer font-semibold hover:bg-[#c0392b]">✕ Cerrar</button>
       </div>
     </div>
   </div>
+
+  <div id="toast-container" class="fixed bottom-6 right-2 sm:right-6 left-2 sm:left-auto z-[99999] flex flex-col items-stretch sm:items-start gap-2.5 pointer-events-none"></div>
 
   <script src="/static/app.js"></script>
   <script>
@@ -338,6 +439,11 @@
           console.warn('Fallo el registro del SW:', err);
         });
       });
+    }
+
+    // Modal close helper
+    function closePreview() {
+      document.getElementById('preview-overlay').style.display = 'none';
     }
   </script>
 </body>
