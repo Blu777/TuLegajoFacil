@@ -82,6 +82,10 @@ class EntryModel(BaseModel):
     start_time: str = Field(..., pattern=r"^\d{2}:\d{2}$", max_length=5)
     end_time: str = Field(..., pattern=r"^\d{2}:\d{2}$", max_length=5)
     hours: float = Field(..., ge=0.5, le=24.0)
+    # Per-entry fields (sent by the frontend since multi-template support)
+    template_name: str = Field("", max_length=100)
+    tasks_desc: str = Field("", max_length=200)
+    habitual_schedule: str = Field("", max_length=50)
 
     @field_validator("date")
     @classmethod
@@ -102,7 +106,7 @@ class SubmitRequest(BaseModel):
     password: str = Field("", max_length=128)
     entries: list[EntryModel] = Field(..., min_length=1, max_length=60)
     
-    # Strict validation on free-text inputs to avoid injection in the Playwright DOM
+    # Global fallback fields (used only when entry-level fields are empty)
     template_name: str = Field("Autorización de horas extras TV Universal", max_length=100)
     tasks_desc: str = Field("", max_length=200)
     habitual_schedule: str = Field("", max_length=50)
@@ -251,7 +255,20 @@ async def test_login(req: SubmitRequest, user: str = Depends(verify_access)):
 async def submit_hours(req: SubmitRequest, user: str = Depends(verify_access)):
     """Start an async automation job. Returns a job_id to poll for status."""
     creds = _resolve_creds(req)
-    entries = [HoursEntry(date=e.date, start_time=e.start_time, end_time=e.end_time, hours=e.hours) for e in req.entries]
+    # Build HoursEntry objects with per-entry template/tasks/schedule.
+    # Fall back to global req fields for backwards compat if entry-level fields are empty.
+    entries = [
+        HoursEntry(
+            date=e.date,
+            start_time=e.start_time,
+            end_time=e.end_time,
+            hours=e.hours,
+            template_name=e.template_name or req.template_name,
+            tasks_desc=e.tasks_desc or req.tasks_desc,
+            habitual_schedule=e.habitual_schedule or req.habitual_schedule,
+        )
+        for e in req.entries
+    ]
 
     job_id = str(uuid.uuid4())
     job_log: list[dict[str, str]] = []
@@ -259,14 +276,7 @@ async def submit_hours(req: SubmitRequest, user: str = Depends(verify_access)):
 
     async def _run():
         try:
-            await run_session(
-                creds, 
-                entries, 
-                req.template_name, 
-                req.tasks_desc, 
-                req.habitual_schedule, 
-                job_log
-            )
+            await run_session(creds, entries, job_log)
             JOBS[job_id]["status"] = "done"
         except Exception as exc:
             job_log.append({"type": "error", "msg": f"Error inesperado: {exc}"})

@@ -49,6 +49,9 @@ class HoursEntry:
     start_time: str
     end_time: str
     hours: float
+    template_name: str = ""   # e.g. "Autorización de horas extras TV Universal"
+    tasks_desc: str = ""      # e.g. "Opero sonido para PGM Nuestro Tiempo"
+    habitual_schedule: str = ""  # e.g. "No aplica"
 
     def formatted_date(self) -> str:
         """Return date in the format expected by the company portal."""
@@ -118,13 +121,11 @@ async def navigate_to_hours_form(page: Page) -> None:
 async def submit_entry(
     page: Page, 
     entry: HoursEntry, 
-    template_name: str,
-    tasks_desc: str,
-    habitual_schedule: str,
     password: str = ""
 ) -> SubmitResult:
     """
     Fill and submit a single overtime hours entry through the modal workflow.
+    template_name, tasks_desc and habitual_schedule are read from the entry object.
     """
     try:
         logger.info(f"Submitting entry: {entry.date} — {entry.hours}h")
@@ -152,10 +153,10 @@ async def submit_entry(
                 var sel = document.querySelector(".model-choice select[name='model']");
                 if (!sel) return 'ERROR: select not found';
                 var opts = Array.from(sel.options);
-                var target = opts.find(o => o.text.trim() === {repr(template_name)});
+                var target = opts.find(o => o.text.trim() === {repr(entry.template_name)});
                 if (!target) {{
                     // fallback: partial match
-                    target = opts.find(o => o.text.trim().includes({repr(template_name.split(' ')[0])}));
+                    target = opts.find(o => o.text.trim().includes({repr(entry.template_name.split(' ')[0])}));
                 }}
                 if (!target) return 'ERROR: option not found. Available: ' + opts.map(o=>o.text.trim()).filter(t=>t).join(' | ');
                 // Forma oficial para actualizar select2 programáticamente
@@ -201,10 +202,10 @@ async def submit_entry(
         """)
         
         # tareas → descripción de tareas
-        await page.fill("input[data-name='tareas']", tasks_desc)
+        await page.fill("input[data-name='tareas']", entry.tasks_desc)
         
         # horario → horario laboral habitual
-        await page.fill("input[data-name='horario']", habitual_schedule)
+        await page.fill("input[data-name='horario']", entry.habitual_schedule)
         
         # fuera_domicilio y noche_fuera ya tienen "NO" por defecto → no tocar
         await _screenshot(page, f"{entry.date}_5_fields_filled")
@@ -249,13 +250,11 @@ async def submit_entry(
 async def run_session(
     creds: Credentials,
     entries: list[HoursEntry],
-    template_name: str,
-    tasks_desc: str,
-    habitual_schedule: str,
     job_log: list[dict[str, Any]],
 ) -> bool:
     """
     Run a full Playwright session: login → navigate → submit all entries.
+    Each HoursEntry carries its own template_name, tasks_desc and habitual_schedule.
 
     Results are appended to `job_log` (shared mutable list used for live status).
     Returns True if all entries succeeded, False otherwise.
@@ -289,7 +288,7 @@ async def run_session(
             # 3. Submit each entry
             for entry in entries:
                 result = await submit_entry(
-                    page, entry, template_name, tasks_desc, habitual_schedule,
+                    page, entry,
                     password=creds.password  # ← pass password for signing step
                 )
                 status = "success" if result.success else "error"
@@ -297,7 +296,7 @@ async def run_session(
                 if result.success:
                     try:
                         from database import add_entry
-                        add_entry(entry.date, entry.hours, template_name, tasks_desc, habitual_schedule)
+                        add_entry(entry.date, entry.hours, entry.template_name, entry.tasks_desc, entry.habitual_schedule)
                     except Exception as db_exc:
                         logger.error(f"Database save error for {entry.date}: {db_exc}")
                 else:
