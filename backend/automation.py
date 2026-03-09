@@ -179,7 +179,8 @@ async def submit_entry(
         # 4. Llenar los campos usando data-name (selectores estables del HTML real)
         
         # CANTIDAD_HORAS → número de horas (ej: 5, 9)
-        await page.fill("input[data-name='CANTIDAD_HORAS']", str(entry.hours))
+        hours_str = str(int(entry.hours)) if entry.hours == int(entry.hours) else str(entry.hours)
+        await page.fill("input[data-name='CANTIDAD_HORAS']", hours_str)
         
         # horario1 → hora de inicio, solo número (ej: "07:00" → "7")
         start_hour = str(int(entry.start_time.split(":")[0]))
