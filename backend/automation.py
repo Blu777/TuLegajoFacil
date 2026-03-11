@@ -95,7 +95,13 @@ async def login(page: Page, creds: Credentials) -> None:
 
     # ← COMPLETAR: selector del botón de login
     # Ejemplos: "button[type='submit']", "#btn-login", ".login-btn"
-    await page.click('#button_sing_in')
+    try:
+        async with page.expect_navigation(wait_until="networkidle", timeout=15000):
+            await page.click('#button_sing_in')
+    except Exception as e:
+        logger.warning(f"No clear navigation after login click (might be normal): {e}")
+        await page.wait_for_load_state("networkidle")
+        await asyncio.sleep(2)
 
     # Navegar directamente a la lista de comunicaciones (bypass home.htm)
     target_url = creds.url.replace("login.htm", "employeeCommunicationsList.htm")
@@ -114,8 +120,19 @@ async def navigate_to_hours_form(page: Page) -> None:
         await page.goto(target, wait_until="networkidle")
 
     # Esperar a que cargue la lista y esté el botón de Enviar
-    await page.wait_for_selector("a.new-communication", timeout=10000)
-    logger.info("Communications list loaded.")
+    try:
+        await page.wait_for_selector("a.new-communication", timeout=15000)
+        logger.info("Communications list loaded.")
+    except Exception as e:
+        logger.error(f"Timeout waiting for a.new-communication. Current URL: {page.url}")
+        try:
+            # Guardar screenshot forzoso en la carpeta del proyecto para analizar qué cargó la página
+            screenshot_path = os.path.join(os.getcwd(), "error_timeout.png")
+            await page.screenshot(path=screenshot_path, full_page=True)
+            logger.error(f"Screenshot guardado en: {screenshot_path}")
+        except Exception as screenshot_exc:
+            logger.error(f"No se pudo guardar la captura de pantalla: {screenshot_exc}")
+        raise e
 
 
 async def submit_entry(
