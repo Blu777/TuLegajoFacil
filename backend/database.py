@@ -21,6 +21,7 @@ def init_db():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS entries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL DEFAULT '',
                 work_date TEXT NOT NULL,
                 hours REAL NOT NULL,
                 template TEXT,
@@ -29,6 +30,11 @@ def init_db():
                 submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        # Migration: add username column to existing databases
+        cursor.execute("PRAGMA table_info(entries)")
+        cols = [row[1] for row in cursor.fetchall()]
+        if 'username' not in cols:
+            cursor.execute("ALTER TABLE entries ADD COLUMN username TEXT NOT NULL DEFAULT ''")
         conn.commit()
         conn.close()
         logger.info(f"Database initialized at {DB_PATH}")
@@ -38,13 +44,13 @@ def init_db():
                      f"para el usuario de la App. Detalle interno: {e}")
 
 
-def add_entry(work_date: str, hours: float, template: str, tasks: str, schedule: str):
+def add_entry(username: str, work_date: str, hours: float, template: str, tasks: str, schedule: str):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO entries (work_date, hours, template, tasks, schedule)
-        VALUES (?, ?, ?, ?, ?)
-    """, (work_date, hours, template, tasks, schedule))
+        INSERT INTO entries (username, work_date, hours, template, tasks, schedule)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (username, work_date, hours, template, tasks, schedule))
     conn.commit()
     conn.close()
 
@@ -75,14 +81,14 @@ def _get_period_bounds(target_date: date):
     
     return period_id, label, start_date.isoformat(), end_date.isoformat()
 
-def get_periods():
+def get_periods(username: str = ''):
     """
     Groups all entries into custom periods (21st to 20th) and calculates sums.
     """
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT work_date, hours FROM entries")
+    cursor.execute("SELECT work_date, hours FROM entries WHERE username = ?", (username,))
     rows = cursor.fetchall()
     conn.close()
 
@@ -106,7 +112,7 @@ def get_periods():
     sorted_periods = sorted(periods_data.values(), key=lambda x: x["id"], reverse=True)
     return sorted_periods
 
-def get_entries_by_period(period_id: str):
+def get_entries_by_period(period_id: str, username: str = ''):
     """
     Fetches detailed entries for a given period ID (YYYY-MM).
     """
@@ -121,9 +127,9 @@ def get_entries_by_period(period_id: str):
     cursor.execute("""
         SELECT id, work_date, hours, template, tasks, schedule, submitted_at
         FROM entries
-        WHERE work_date >= ? AND work_date <= ?
+        WHERE work_date >= ? AND work_date <= ? AND username = ?
         ORDER BY work_date DESC
-    """, (start_iso, end_iso))
+    """, (start_iso, end_iso, username))
     
     entries = [dict(row) for row in cursor.fetchall()]
     conn.close()

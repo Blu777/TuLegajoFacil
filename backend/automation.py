@@ -269,6 +269,7 @@ async def run_session(
     creds: Credentials,
     entries: list[HoursEntry],
     job_log: list[dict[str, Any]],
+    username: str = "",
 ) -> bool:
     """
     Run a full Playwright session: login → navigate → submit all entries.
@@ -314,7 +315,7 @@ async def run_session(
                 if result.success:
                     try:
                         from database import add_entry
-                        add_entry(entry.date, entry.hours, entry.template_name, entry.tasks_desc, entry.habitual_schedule)
+                        add_entry(username, entry.date, entry.hours, entry.template_name, entry.tasks_desc, entry.habitual_schedule)
                     except Exception as db_exc:
                         logger.error(f"Database save error for {entry.date}: {db_exc}")
                 else:

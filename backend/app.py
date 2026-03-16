@@ -305,7 +305,7 @@ async def submit_hours(req: SubmitRequest, request: Request, user: str = Depends
 
     async def _run():
         try:
-            await run_session(creds, entries, job_log)
+            await run_session(creds, entries, job_log, username=user)
             JOBS[job_id]["status"] = "done"
         except Exception as exc:
             job_log.append({"type": "error", "msg": f"Error inesperado: {exc}"})
@@ -329,12 +329,12 @@ async def get_status(job_id: str, user: str = Depends(verify_access)):
 @app.get("/api/periods")
 async def api_get_periods(user: str = Depends(verify_access)):
     """Devuelve la lista de periodos agrupados disponibles en el historial."""
-    return get_periods()
+    return get_periods(username=user)
 
 @app.get("/api/history/{period_id}")
 async def api_get_history(period_id: str, user: str = Depends(verify_access)):
     """Devuelve el detalle de las horas cargadas en un periodo específico."""
-    return get_entries_by_period(period_id)
+    return get_entries_by_period(period_id, username=user)
 
 
 # ─── Debug Screenshots ────────────────────────────────────────────────────────
