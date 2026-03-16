@@ -1,4 +1,5 @@
 import sqlite3
+import shutil
 import logging
 from pathlib import Path
 from datetime import datetime, date
@@ -10,11 +11,17 @@ logger = logging.getLogger(__name__)
 # Resolve path to the data folder
 DATA_DIR = Path(__file__).parent.parent / "data"
 DB_PATH = DATA_DIR / "history.db"
+SEED_PATH = Path(__file__).parent / "seed.db"
 
 def init_db():
     try:
         if not DATA_DIR.exists():
             DATA_DIR.mkdir(parents=True, exist_ok=True)
+        # First-run seed: if DB is missing (empty volume) but seed exists, copy it
+        if not DB_PATH.exists() and SEED_PATH.exists():
+            shutil.copy2(str(SEED_PATH), str(DB_PATH))
+            logger.info(f"Database seeded from {SEED_PATH}")
+            return
             
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()

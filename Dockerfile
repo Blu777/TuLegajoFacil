@@ -52,6 +52,8 @@ WORKDIR /app
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 COPY data/ ./data/
+# Seed DB: stored outside the /app/data volume so it survives volume mount overlay
+COPY data/history.db ./backend/seed.db
 
 # Permissions
 RUN chown -R apps:apps /app
