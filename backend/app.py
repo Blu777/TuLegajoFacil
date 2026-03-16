@@ -162,25 +162,9 @@ async def serve_manifest():
 
 @app.post("/api/auth/login")
 async def app_login(req: AppLoginRequest, response: Response):
-    """Inicia sesión validando las credenciales contra el sistema Mi Legajo."""
-    creds = Credentials(username=req.username, password=req.password)
-    if not creds.is_valid():
-        raise HTTPException(status_code=422, detail="Credenciales inválidas.")
-
-    try:
-        from playwright.async_api import async_playwright
-        from automation import login
-        async with async_playwright() as pw:
-            browser = await pw.chromium.launch(
-                headless=True,
-                executable_path=os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"),
-                args=["--no-sandbox", "--disable-dev-shm-usage"]
-            )
-            page = await browser.new_page()
-            await login(page, creds)
-            await browser.close()
-    except Exception as exc:
-        raise HTTPException(status_code=401, detail=f"Credenciales incorrectas o sistema no disponible: {exc}")
+    """Guarda las credenciales de Mi Legajo en la sesión JWT. La validación real ocurre al enviar."""
+    if not req.username.strip() or not req.password:
+        raise HTTPException(status_code=422, detail="Ingresá usuario y contraseña.")
 
     expires = datetime.now(timezone.utc) + timedelta(days=30)
     token = jwt.encode({

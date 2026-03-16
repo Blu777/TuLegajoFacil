@@ -2,8 +2,11 @@ import sqlite3
 import logging
 from pathlib import Path
 from datetime import datetime, date
+from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 import calendar
+
+BA_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 logger = logging.getLogger(__name__)
 
@@ -44,12 +47,13 @@ def init_db():
 
 
 def add_entry(username: str, work_date: str, hours: float, template: str, tasks: str, schedule: str):
+    submitted_at = datetime.now(BA_TZ).strftime("%Y-%m-%d %H:%M:%S")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO entries (username, work_date, hours, template, tasks, schedule)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (username, work_date, hours, template, tasks, schedule))
+        INSERT INTO entries (username, work_date, hours, template, tasks, schedule, submitted_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (username, work_date, hours, template, tasks, schedule, submitted_at))
     conn.commit()
     conn.close()
 

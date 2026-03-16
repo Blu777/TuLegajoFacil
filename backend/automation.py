@@ -83,7 +83,7 @@ async def login(page: Page, creds: Credentials) -> None:
       4. Esperar a que cargue la página de inicio.
     """
     logger.info(f"Navigating to login page: {creds.url}")
-    await page.goto(creds.url, wait_until="networkidle")
+    await page.goto(creds.url, wait_until="domcontentloaded")
 
     # ← COMPLETAR: selector del campo de usuario
     # Ejemplos: "#username", "input[name='user']", "input[type='text']"
@@ -96,16 +96,15 @@ async def login(page: Page, creds: Credentials) -> None:
     # ← COMPLETAR: selector del botón de login
     # Ejemplos: "button[type='submit']", "#btn-login", ".login-btn"
     try:
-        async with page.expect_navigation(wait_until="networkidle", timeout=15000):
+        async with page.expect_navigation(wait_until="domcontentloaded", timeout=15000):
             await page.click('#button_sing_in')
     except Exception as e:
         logger.warning(f"No clear navigation after login click (might be normal): {e}")
-        await page.wait_for_load_state("networkidle")
-        await asyncio.sleep(2)
+        await page.wait_for_load_state("domcontentloaded")
 
     # Navegar directamente a la lista de comunicaciones (bypass home.htm)
     target_url = creds.url.replace("login.htm", "employeeCommunicationsList.htm")
-    await page.goto(target_url, wait_until="networkidle")
+    await page.goto(target_url, wait_until="domcontentloaded")
     logger.info("Login successful, navigated to communications list.")
 
 
@@ -117,7 +116,7 @@ async def navigate_to_hours_form(page: Page) -> None:
     if "employeeCommunicationsList.htm" not in url:
         # If not there, try direct navigation
         target = url.replace("home.htm", "employeeCommunicationsList.htm").replace("login.htm", "employeeCommunicationsList.htm")
-        await page.goto(target, wait_until="networkidle")
+        await page.goto(target, wait_until="domcontentloaded")
 
     # Esperar a que cargue la lista y esté el botón de Enviar
     try:
@@ -285,7 +284,20 @@ async def run_session(
         browser: Browser = await pw.chromium.launch(
             headless=True,
             executable_path=os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"),
-            args=["--no-sandbox", "--disable-dev-shm-usage"],  # Required in Docker
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--disable-extensions",
+                "--disable-default-apps",
+                "--no-first-run",
+                "--disable-background-networking",
+                "--disable-sync",
+                "--disable-translate",
+                "--disable-notifications",
+                "--mute-audio",
+                "--blink-settings=imagesEnabled=false",
+            ],
         )
         context: BrowserContext = await browser.new_context(
             viewport={"width": 1280, "height": 800},

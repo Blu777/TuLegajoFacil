@@ -157,7 +157,7 @@ btnAppLogin.addEventListener("click", async () => {
   }
 
   btnAppLogin.disabled = true;
-  btnAppLogin.textContent = "Verificando con Mi Legajo...";
+  btnAppLogin.textContent = "Iniciando sesión...";
 
   try {
     const res = await fetch("/api/auth/login", {
@@ -169,6 +169,7 @@ btnAppLogin.addEventListener("click", async () => {
     const data = await res.json();
     if (res.ok) {
       showToast("¡Bienvenido!", "success");
+      inputAppUser.value = "";
       inputAppPass.value = "";
       await checkAuth();
       if (entriesList.length === 0) {
