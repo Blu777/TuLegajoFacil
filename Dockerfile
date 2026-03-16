@@ -51,19 +51,19 @@ WORKDIR /app
 # Copy source code
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
-COPY data/ ./data/
-# Seed DB: stored outside the /app/data volume so it survives volume mount overlay
+# Seed DB: stored outside /app/data so it survives volume mount overlay
 COPY data/history.db ./backend/seed.db
+
+# Entrypoint: fixes volume permissions and seeds DB before dropping to apps user
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Permissions
 RUN chown -R apps:apps /app
-
-USER apps
 
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost:8080/api/health || exit 1
 
-WORKDIR /app/backend
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+ENTRYPOINT ["/entrypoint.sh"]
