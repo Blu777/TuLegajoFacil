@@ -51,6 +51,7 @@ WORKDIR /app
 # Copy source code
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
+COPY data/ ./data/
 
 # Permissions
 RUN chown -R apps:apps /app
