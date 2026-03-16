@@ -39,26 +39,38 @@ app = FastAPI(title="Legajo Hours Automator", version="1.0.0", docs_url=None)
 
 # ─── Security: JWT & HttpOnly Cookies ────────────────────────────────────────
 import os
-APP_USERNAME = os.getenv("APP_USERNAME", "admin")
-APP_PASSWORD = os.getenv("APP_PASSWORD", "admin123")
 # El secreto se genera dinámicamente cada vez que el contenedor arranca para máxima seguridad, 
 # a menos que se fije uno. En una PWA local, si reinicias el servidor tendrás que re-loguearte, lo cual es muy seguro.
 SESSION_SECRET = os.getenv("SESSION_SECRET", secrets.token_hex(32))
 
 def verify_access(request: Request):
-    """Middleare para verificar la existencia de un JWT válido en las cookies."""
+    """Verifica la existencia de un JWT válido en las cookies."""
     token = request.cookies.get("session_token")
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No autenticado (Cookie missing)")
     try:
         payload = jwt.decode(token, SESSION_SECRET, algorithms=["HS256"])
-        if payload.get("user") != APP_USERNAME:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no válido")
+        if not payload.get("user"):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
         return payload["user"]
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesión expirada")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token no válido")
+
+def get_session_credentials(request: Request) -> Credentials:
+    """Extrae las credenciales del legajo almacenadas en el JWT de sesión."""
+    token = request.cookies.get("session_token")
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No autenticado")
+    try:
+        payload = jwt.decode(token, SESSION_SECRET, algorithms=["HS256"])
+        return Credentials(
+            username=payload.get("legajo_user", ""),
+            password=payload.get("legajo_pass", "")
+        )
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesión inválida")
 
 class AppLoginRequest(BaseModel):
     username: str
@@ -120,21 +132,12 @@ class JobResponse(BaseModel):
 
 # ─── Helper: resolve credentials ─────────────────────────────────────────────
 
-def _resolve_creds(req: SubmitRequest) -> Credentials:
-    """Prefer env-var credentials, fall back to request body credentials."""
+def _resolve_creds(request: Request) -> Credentials:
+    """Prefer env-var credentials, fall back to JWT session credentials."""
     env_creds = get_env_credentials()
     if env_creds:
         return env_creds
-
-    if not req.username or not req.password:
-        raise HTTPException(
-            status_code=422,
-            detail="Credentials required. Provide username/password in the form, or set LEGAJO_USER/LEGAJO_PASS env vars.",
-        )
-    creds = Credentials(username=req.username, password=req.password)
-    if not creds.is_valid():
-        raise HTTPException(status_code=422, detail="Invalid credentials or URL.")
-    return creds
+    return get_session_credentials(request)
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────────
@@ -159,16 +162,34 @@ async def serve_manifest():
 
 @app.post("/api/auth/login")
 async def app_login(req: AppLoginRequest, response: Response):
-    """Inicia sesión en la PWA y setea una cookie HttpOnly con JWT"""
-    correct_username = secrets.compare_digest(req.username, APP_USERNAME)
-    correct_password = secrets.compare_digest(req.password, APP_PASSWORD)
-    
-    if not (correct_username and correct_password):
-        raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
-    
+    """Inicia sesión validando las credenciales contra el sistema Mi Legajo."""
+    creds = Credentials(username=req.username, password=req.password)
+    if not creds.is_valid():
+        raise HTTPException(status_code=422, detail="Credenciales inválidas.")
+
+    try:
+        from playwright.async_api import async_playwright
+        from automation import login
+        async with async_playwright() as pw:
+            browser = await pw.chromium.launch(
+                headless=True,
+                executable_path=os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"),
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+            page = await browser.new_page()
+            await login(page, creds)
+            await browser.close()
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail=f"Credenciales incorrectas o sistema no disponible: {exc}")
+
     expires = datetime.now(timezone.utc) + timedelta(days=30)
-    token = jwt.encode({"user": req.username, "exp": expires}, SESSION_SECRET, algorithm="HS256")
-    
+    token = jwt.encode({
+        "user": req.username,
+        "legajo_user": req.username,
+        "legajo_pass": req.password,
+        "exp": expires
+    }, SESSION_SECRET, algorithm="HS256")
+
     response.set_cookie(
         key="session_token",
         value=token,
@@ -215,8 +236,16 @@ async def auto_login(response: Response):
     auto = os.getenv("APP_AUTO_LOGIN", "false").lower() == "true"
     if not auto:
         raise HTTPException(status_code=403, detail="Auto-login not enabled (set APP_AUTO_LOGIN=true)")
+    env_creds = get_env_credentials()
+    if not env_creds:
+        raise HTTPException(status_code=400, detail="Auto-login requiere LEGAJO_USER y LEGAJO_PASS configuradas en el entorno.")
     expires = datetime.now(timezone.utc) + timedelta(days=30)
-    token = jwt.encode({"user": APP_USERNAME, "exp": expires}, SESSION_SECRET, algorithm="HS256")
+    token = jwt.encode({
+        "user": env_creds.username,
+        "legajo_user": env_creds.username,
+        "legajo_pass": env_creds.password,
+        "exp": expires
+    }, SESSION_SECRET, algorithm="HS256")
     response.set_cookie(
         key="session_token",
         value=token,
@@ -229,12 +258,12 @@ async def auto_login(response: Response):
 
 
 @app.post("/api/test-login")
-async def test_login(req: SubmitRequest, user: str = Depends(verify_access)):
+async def test_login(request: Request, user: str = Depends(verify_access)):
     """Quick credential check — launches browser, logs in, then closes."""
     from playwright.async_api import async_playwright
     from automation import login
 
-    creds = _resolve_creds(req)
+    creds = _resolve_creds(request)
     try:
         import os
         async with async_playwright() as pw:
@@ -252,9 +281,9 @@ async def test_login(req: SubmitRequest, user: str = Depends(verify_access)):
 
 
 @app.post("/api/submit", response_model=JobResponse, status_code=202)
-async def submit_hours(req: SubmitRequest, user: str = Depends(verify_access)):
+async def submit_hours(req: SubmitRequest, request: Request, user: str = Depends(verify_access)):
     """Start an async automation job. Returns a job_id to poll for status."""
-    creds = _resolve_creds(req)
+    creds = _resolve_creds(request)
     # Build HoursEntry objects with per-entry template/tasks/schedule.
     # Fall back to global req fields for backwards compat if entry-level fields are empty.
     entries = [

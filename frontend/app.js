@@ -14,50 +14,50 @@
 "use strict";
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
-const entriesListContainer= document.getElementById("entries-list-container");
-const emptyState    = document.getElementById("empty-state");
-const btnClearAll   = document.getElementById("btn-clear-all");
-const btnSubmit     = document.getElementById("btn-submit");
-const btnTestLogin  = document.getElementById("btn-test-login");
+const entriesListContainer = document.getElementById("entries-list-container");
+const emptyState = document.getElementById("empty-state");
+const btnClearAll = document.getElementById("btn-clear-all");
+const btnSubmit = document.getElementById("btn-submit");
+const btnTestLogin = document.getElementById("btn-test-login");
 const btnTogglePass = document.getElementById("btn-toggle-pass");
 const btnDismissLog = document.getElementById("btn-dismiss-log");
-const inputUser     = document.getElementById("input-user");
-const inputPass     = document.getElementById("input-pass");
-const eyeOpen       = document.getElementById("eye-open");
-const eyeClosed     = document.getElementById("eye-closed");
-const summaryCount  = document.getElementById("summary-count");
-const summaryHours  = document.getElementById("summary-hours");
-const summary50     = document.getElementById("summary-50");
-const summary100    = document.getElementById("summary-100");
-const statusBadge   = document.getElementById("status-badge");
-const statusText    = document.getElementById("status-text");
-const submitLabel   = document.getElementById("submit-label");
+const inputUser = document.getElementById("input-user");
+const inputPass = document.getElementById("input-pass");
+const eyeOpen = document.getElementById("eye-open");
+const eyeClosed = document.getElementById("eye-closed");
+const summaryCount = document.getElementById("summary-count");
+const summaryHours = document.getElementById("summary-hours");
+const summary50 = document.getElementById("summary-50");
+const summary100 = document.getElementById("summary-100");
+const statusBadge = document.getElementById("status-badge");
+const statusText = document.getElementById("status-text");
+const submitLabel = document.getElementById("submit-label");
 const submitSpinner = document.getElementById("submit-spinner");
-const logCard       = document.getElementById("log-card");
-const logOutput     = document.getElementById("log-output");
-const envNotice     = document.getElementById("env-notice");
-const credsFields   = document.getElementById("creds-fields");
+const logCard = document.getElementById("log-card");
+const logOutput = document.getElementById("log-output");
+const envNotice = document.getElementById("env-notice");
+const credsFields = document.getElementById("creds-fields");
 
 // Form Settings
-const btnAddEntry    = document.getElementById("btn-add-entry");
-const entryDate      = document.getElementById("entry-date");
-const entryStart     = document.getElementById("entry-start");
-const entryEnd       = document.getElementById("entry-end");
-const entryHoursLbl  = document.getElementById("entry-hours");
-const entryBadge50   = document.getElementById("entry-badge-50");
-const entryBadge100  = document.getElementById("entry-badge-100");
-const entryTemplate  = document.getElementById("entry-template");
-const entryTasks     = document.getElementById("entry-tasks");
-const entrySchedule  = document.getElementById("entry-schedule");
+const btnAddEntry = document.getElementById("btn-add-entry");
+const entryDate = document.getElementById("entry-date");
+const entryStart = document.getElementById("entry-start");
+const entryEnd = document.getElementById("entry-end");
+const entryHoursLbl = document.getElementById("entry-hours");
+const entryBadge50 = document.getElementById("entry-badge-50");
+const entryBadge100 = document.getElementById("entry-badge-100");
+const entryTemplate = document.getElementById("entry-template");
+const entryTasks = document.getElementById("entry-tasks");
+const entrySchedule = document.getElementById("entry-schedule");
 
 // Feriado Fields
-const groupStandardTime    = document.getElementById("group-standard-time");
+const groupStandardTime = document.getElementById("group-standard-time");
 const groupStandardDetails = document.getElementById("group-standard-details");
-const groupFeriadoFields   = document.getElementById("group-feriado-fields");
-const entrySector          = document.getElementById("entry-sector");
-const entryLocation        = document.getElementById("entry-location");
-const entryFeriadoHours    = document.getElementById("entry-feriado-hours");
-const entryReason          = document.getElementById("entry-reason");
+const groupFeriadoFields = document.getElementById("group-feriado-fields");
+const entrySector = document.getElementById("entry-sector");
+const entryLocation = document.getElementById("entry-location");
+const entryFeriadoHours = document.getElementById("entry-feriado-hours");
+const entryReason = document.getElementById("entry-reason");
 
 // History / Tabs
 const tabSubmit = document.getElementById("tab-submit");
@@ -76,18 +76,18 @@ toastContainer.id = "toast-container";
 document.body.appendChild(toastContainer);
 
 // JWT Login Overlay
-const loginOverlay    = document.getElementById("login-overlay");
-const mainAppContainer= document.getElementById("main-app-container");
-const btnAppLogin     = document.getElementById("btn-app-login");
-const inputAppUser    = document.getElementById("app-user");
-const inputAppPass    = document.getElementById("app-pass");
-const btnLogout       = document.getElementById("btn-logout");
+const loginOverlay = document.getElementById("login-overlay");
+const mainAppContainer = document.getElementById("main-app-container");
+const btnAppLogin = document.getElementById("btn-app-login");
+const inputAppUser = document.getElementById("app-user");
+const inputAppPass = document.getElementById("app-pass");
+const btnLogout = document.getElementById("btn-logout");
 
 // ─── State ───────────────────────────────────────────────────────────────────
 let entriesList = [];
 let entryIdCounter = 0;
-let pollingId   = null;
-let isRunning   = false;
+let pollingId = null;
+let isRunning = false;
 let envCredsLoaded = false;
 
 // ─── Init ────────────────────────────────────────────────────────────────────
@@ -95,21 +95,26 @@ async function checkAuth() {
   try {
     const res = await fetch("/api/auth/check");
     if (res.ok) {
-        loginOverlay.style.display = "none";
-        mainAppContainer.style.display = "block";
-        // Check if server has env-var credentials (optional, fallback to health)
-        fetch("/api/health").then(r => r.json()).then(data => {
-            if (data.env_creds) {
-                envNotice.style.display  = "flex";
-                credsFields.style.display = "none";
-                envCredsLoaded = true;
-            }
-        }).catch(()=>{});
-        return true;
+      loginOverlay.style.display = "none";
+      mainAppContainer.style.display = "block";
+      // Credentials always come from session or env vars — never from input fields
+      credsFields.style.display = "none";
+      fetch("/api/health")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.env_creds) {
+            envNotice.style.display = "flex";
+            envCredsLoaded = true;
+          } else {
+            document.getElementById("session-notice").style.display = "flex";
+          }
+        })
+        .catch(() => {});
+      return true;
     } else {
-        loginOverlay.style.display = "flex";
-        mainAppContainer.style.display = "none";
-        return false;
+      loginOverlay.style.display = "flex";
+      mainAppContainer.style.display = "none";
+      return false;
     }
   } catch (err) {
     console.error("Auth check failed", err);
@@ -122,20 +127,23 @@ async function checkAuth() {
   // Intentar auto-login silencioso (solo funciona si APP_AUTO_LOGIN=true en el servidor)
   try {
     await fetch("/api/auth/auto-login");
-  } catch(_) {}
+  } catch (_) {}
 
   // Set default date for form
   const today = new Date();
-  const yyyy  = today.getFullYear();
-  const mm    = String(today.getMonth() + 1).padStart(2, "0");
-  const dd    = String(today.getDate()).padStart(2, "0");
-  if(entryDate) entryDate.value = `${yyyy}-${mm}-${dd}`;
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  if (entryDate) entryDate.value = `${yyyy}-${mm}-${dd}`;
   // Force empty template on page load (browser cache can restore last selected value)
-  if(entryTemplate) { entryTemplate.value = ""; handleTemplateChange(); }
+  if (entryTemplate) {
+    entryTemplate.value = "";
+    handleTemplateChange();
+  }
 
   // Evaluate initial hours
   calcFormHours();
-  
+
   const isAuth = await checkAuth();
   if (isAuth) {
     updateSummary();
@@ -146,78 +154,82 @@ async function checkAuth() {
 btnAppLogin.addEventListener("click", async () => {
   const username = inputAppUser.value.trim();
   const password = inputAppPass.value;
-  if(!username || !password) {
-      showToast("Ingresá tus credenciales", "warning");
-      return;
+  if (!username || !password) {
+    showToast("Ingresá tus credenciales", "warning");
+    return;
   }
-  
+
   btnAppLogin.disabled = true;
-  btnAppLogin.textContent = "Verificando...";
-  
+  btnAppLogin.textContent = "Verificando con Mi Legajo...";
+
   try {
-      const res = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({username, password})
-      });
-      
-      const data = await res.json();
-      if(res.ok) {
-          showToast("¡Bienvenido!", "success");
-          inputAppPass.value = "";
-          await checkAuth();
-          if (entriesList.length === 0) {
-              updateSummary();
-          }
-      } else {
-          showToast(`Error: ${data.detail || 'Denegado'}`, "error");
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      showToast("¡Bienvenido!", "success");
+      inputAppPass.value = "";
+      await checkAuth();
+      if (entriesList.length === 0) {
+        updateSummary();
       }
-  } catch(err) {
-      showToast("Error de conexión", "error");
+    } else {
+      showToast(`Error: ${data.detail || "Denegado"}`, "error");
+    }
+  } catch (err) {
+    showToast("Error de conexión", "error");
   } finally {
-      btnAppLogin.disabled = false;
-      btnAppLogin.textContent = "Iniciar Sesión";
+    btnAppLogin.disabled = false;
+    btnAppLogin.textContent = "Iniciar Sesión";
   }
 });
 
 // Enter en cualquier campo del login overlay dispara el login
-[inputAppUser, inputAppPass].forEach(el => {
+[inputAppUser, inputAppPass].forEach((el) => {
   el.addEventListener("keydown", (e) => {
     if (e.key === "Enter") btnAppLogin.click();
   });
 });
 
 btnLogout.addEventListener("click", async () => {
-    try {
-        await fetch("/api/auth/logout", { method: "POST" });
-        loginOverlay.style.display = "flex";
-        mainAppContainer.style.display = "none";
-        showToast("Sesión cerrada", "info");
-    } catch(err) {
-        console.error("Error logging out", err);
-    }
+  try {
+    await fetch("/api/auth/logout", { method: "POST" });
+    loginOverlay.style.display = "flex";
+    mainAppContainer.style.display = "none";
+    showToast("Sesión cerrada", "info");
+  } catch (err) {
+    console.error("Error logging out", err);
+  }
 });
 
 // ─── Entry Form & List management ───────────────────────────────────────────
 
 function calculateCategoryHours(dateStr, startStr, endStr, templateName) {
   if (!dateStr || !startStr || !endStr) return { h50: 0, h100: 0, total: 0 };
-  
+
   // 1. Forzar fecha local (evita que el Lunes se vuelva Domingo)
-  const partesFecha = dateStr.split('-'); // ["2026", "03", "09"]
-  const fechaLocal = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
+  const partesFecha = dateStr.split("-"); // ["2026", "03", "09"]
+  const fechaLocal = new Date(
+    partesFecha[0],
+    partesFecha[1] - 1,
+    partesFecha[2],
+  );
   const diaSemana = fechaLocal.getDay(); // 0=Dom, 1=Lun ... 6=Sáb
 
   // 2. Convertir "09:00" a número decimal (9.0) para poder calcular
   const convertirADecimal = (horaStr) => {
-      if (!horaStr) return 0;
-      const [horas, minutos] = horaStr.split(':').map(Number);
-      return horas + (minutos / 60);
+    if (!horaStr) return 0;
+    const [horas, minutos] = horaStr.split(":").map(Number);
+    return horas + minutos / 60;
   };
 
   const inicio = convertirADecimal(startStr);
   const fin = convertirADecimal(endStr);
-  
+
   // Calcular total de horas del turno (soporta cruce de medianoche)
   let totalHoras = fin - inicio;
   if (totalHoras < 0) totalHoras += 24;
@@ -226,46 +238,45 @@ function calculateCategoryHours(dateStr, startStr, endStr, templateName) {
   let horas100 = 0;
 
   // Detectar si seleccionaste un Feriado en el desplegable
-  const esFeriado = templateName && templateName.toLowerCase().includes("feriado");
+  const esFeriado =
+    templateName && templateName.toLowerCase().includes("feriado");
 
   // 3. Motor de Reglas (Ley Argentina)
   if (esFeriado || diaSemana === 0) {
-      // Feriados y Domingos: Todo al 100%
-      horas100 = totalHoras;
-  } 
-  else if (diaSemana >= 1 && diaSemana <= 5) {
-      // Lunes a Viernes: Todo al 50%
-      horas50 = totalHoras;
-  } 
-  else if (diaSemana === 6) {
-      // Sábados: Barrera de las 13:00 hs
-      const barrera = 13;
+    // Feriados y Domingos: Todo al 100%
+    horas100 = totalHoras;
+  } else if (diaSemana >= 1 && diaSemana <= 5) {
+    // Lunes a Viernes: Todo al 50%
+    horas50 = totalHoras;
+  } else if (diaSemana === 6) {
+    // Sábados: Barrera de las 13:00 hs
+    const barrera = 13;
 
-      if (fin <= barrera) {
-          // Entró y salió antes de las 13:00 -> Todo 50%
-          horas50 = totalHoras;
-      } else if (inicio >= barrera) {
-          // Entró a las 13:00 o después -> Todo 100%
-          horas100 = totalHoras;
-      } else {
-          // Cruzó la barrera de las 13:00 (ej: 09:00 a 18:00) -> Se divide
-          horas50 = barrera - inicio;
-          horas100 = fin - barrera;
-      }
+    if (fin <= barrera) {
+      // Entró y salió antes de las 13:00 -> Todo 50%
+      horas50 = totalHoras;
+    } else if (inicio >= barrera) {
+      // Entró a las 13:00 o después -> Todo 100%
+      horas100 = totalHoras;
+    } else {
+      // Cruzó la barrera de las 13:00 (ej: 09:00 a 18:00) -> Se divide
+      horas50 = barrera - inicio;
+      horas100 = fin - barrera;
+    }
   }
 
   return {
-      h50: Number(horas50.toFixed(2)),
-      h100: Number(horas100.toFixed(2)),
-      total: Number(totalHoras.toFixed(2))
+    h50: Number(horas50.toFixed(2)),
+    h100: Number(horas100.toFixed(2)),
+    total: Number(totalHoras.toFixed(2)),
   };
 }
 
 function calcFormHours() {
   if (!entryDate || !entryHoursLbl) return { h50: 0, h100: 0, total: 0 };
-  
+
   const templateVal = entryTemplate ? entryTemplate.value : "";
-  
+
   if (!templateVal) {
     entryHoursLbl.textContent = "0.0";
     if (entryBadge50) entryBadge50.style.display = "none";
@@ -277,7 +288,7 @@ function calcFormHours() {
   let cat;
   let s = entryStart ? entryStart.value : "";
   let e = entryEnd ? entryEnd.value : "";
-  
+
   if (isFeriado) {
     const fh = parseFloat(entryFeriadoHours.value) || 0;
     cat = { h50: 0, h100: fh, total: fh };
@@ -287,7 +298,7 @@ function calcFormHours() {
   }
 
   entryHoursLbl.textContent = cat.total.toFixed(1);
-  
+
   if (entryBadge50) {
     if (cat.h50 > 0) {
       entryBadge50.style.display = "inline-block";
@@ -296,7 +307,7 @@ function calcFormHours() {
       entryBadge50.style.display = "none";
     }
   }
-  
+
   if (entryBadge100) {
     if (cat.h100 > 0) {
       entryBadge100.style.display = "inline-block";
@@ -307,15 +318,22 @@ function calcFormHours() {
   }
 
   // Evaluate Sunday Shift Condition → auto-selects Feriados TV template
-  if (!isFeriado && entryDate.value && s === "07:00" && e === "12:00" && cat.total === 5) {
-    const [yy, mm, dd] = entryDate.value.split('-');
+  if (
+    !isFeriado &&
+    entryDate.value &&
+    s === "07:00" &&
+    e === "12:00" &&
+    cat.total === 5
+  ) {
+    const [yy, mm, dd] = entryDate.value.split("-");
     const dateObj = new Date(yy, mm - 1, dd);
     if (dateObj.getDay() === 0) {
       if (entryTemplate.value !== "Autorización de horas extras TV Universal") {
-         entryTemplate.value = "Autorización de horas extras TV Universal";
-         entryTasks.value = "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
-         entrySchedule.value = "No aplica";
-         return calcFormHours(); // Re-trigger calculation
+        entryTemplate.value = "Autorización de horas extras TV Universal";
+        entryTasks.value =
+          "Opero sonido para PGM Nuestro Tiempo y Reunion Univer";
+        entrySchedule.value = "No aplica";
+        return calcFormHours(); // Re-trigger calculation
       }
     }
   }
@@ -324,7 +342,7 @@ function calcFormHours() {
 
 function handleTemplateChange() {
   const templateVal = entryTemplate.value;
-  
+
   if (!templateVal) {
     groupStandardTime.classList.add("hidden");
     groupStandardTime.classList.remove("grid");
@@ -347,31 +365,33 @@ function handleTemplateChange() {
     groupFeriadoFields.classList.add("hidden");
     groupFeriadoFields.classList.remove("flex");
   }
-  
+
   calcFormHours();
 }
 
-if(entryStart) entryStart.addEventListener("input", calcFormHours);
-if(entryEnd) entryEnd.addEventListener("input", calcFormHours);
-if(entryDate) entryDate.addEventListener("input", calcFormHours);
-if(entryTemplate) entryTemplate.addEventListener("change", handleTemplateChange);
-if(entryFeriadoHours) entryFeriadoHours.addEventListener("input", calcFormHours);
+if (entryStart) entryStart.addEventListener("input", calcFormHours);
+if (entryEnd) entryEnd.addEventListener("input", calcFormHours);
+if (entryDate) entryDate.addEventListener("input", calcFormHours);
+if (entryTemplate)
+  entryTemplate.addEventListener("change", handleTemplateChange);
+if (entryFeriadoHours)
+  entryFeriadoHours.addEventListener("input", calcFormHours);
 
 // ─── Quick Presets ────────────────────────────────────────────────────────────
 const presetDomingo = document.getElementById("preset-domingo");
 if (presetDomingo) {
   presetDomingo.addEventListener("click", () => {
     // Find the TV Universal option by text to avoid encoding issues
-    const tvUniversalOption = Array.from(entryTemplate.options).find(
-      opt => opt.textContent.includes("TV Universal")
+    const tvUniversalOption = Array.from(entryTemplate.options).find((opt) =>
+      opt.textContent.includes("TV Universal"),
     );
     if (tvUniversalOption) {
       entryTemplate.value = tvUniversalOption.value;
     }
-    
+
     // Call handleTemplateChange directly (shows standard fields, hides Feriado)
     handleTemplateChange();
-    
+
     // Now set the time and detail fields
     entryStart.value = "07:00";
     entryEnd.value = "12:00";
@@ -383,22 +403,24 @@ if (presetDomingo) {
   });
 }
 
-if(btnAddEntry) {
+if (btnAddEntry) {
   btnAddEntry.addEventListener("click", () => {
     const dVal = entryDate.value;
     const templateVal = entryTemplate.value;
     const isFeriado = templateVal.toLowerCase().includes("feriado");
-    
+
     let cat;
     let sVal, eVal, tasksDesc, habitualSchedule;
-    
+
     // Validar siempre la fecha y tipo de carga primero
     if (!dVal) {
       alert("⚠ Por favor, completá la fecha de trabajo.");
       return;
     }
     if (!templateVal) {
-      alert("⚠ Por favor, selecciona un Tipo de Carga válido antes de agregar a la lista.");
+      alert(
+        "⚠ Por favor, selecciona un Tipo de Carga válido antes de agregar a la lista.",
+      );
       return;
     }
 
@@ -410,56 +432,63 @@ if(btnAddEntry) {
       const reasonVal = entryReason.value.trim();
 
       if (!horasInput || !sectorVal || !locationVal || !reasonVal) {
-        alert("⚠ Completá las Horas a realizar, Sector, Lugar de trabajo y Motivo formales para el feriado.");
+        alert(
+          "⚠ Completá las Horas a realizar, Sector, Lugar de trabajo y Motivo formales para el feriado.",
+        );
         return;
       }
-      
+
       const fh = parseFloat(horasInput) || 0;
       if (fh < 0.5 || fh > 24) {
-        alert("⚠ La cantidad de horas ingresada para el feriado es inválida (debe ser entre 0.5 y 24).");
+        alert(
+          "⚠ La cantidad de horas ingresada para el feriado es inválida (debe ser entre 0.5 y 24).",
+        );
         return;
       }
 
       // Para Feriado, pasamos todo al 100% de manera estricta ignorando la hora
       cat = { h50: 0, h100: fh, total: fh };
-      
+
       // Valores por defecto para rellenar la estructura de la base de datos
-      sVal = "00:00"; 
-      eVal = "00:00"; 
+      sVal = "00:00";
+      eVal = "00:00";
       tasksDesc = `Motivo: ${reasonVal}`;
       habitualSchedule = `Sector: ${sectorVal} - Lugar: ${locationVal}`;
-      
     } else {
       // Flujo Normal (Lunes a Viernes o Sábado/Domingo normal)
       sVal = entryStart.value;
       eVal = entryEnd.value;
       const tVal = entryTasks.value.trim();
       const hsVal = entrySchedule.value.trim();
-      
+
       if (!sVal || !eVal) {
         alert("⚠ Completá el horario de Inicio y Fin del turno.");
         return;
       }
       if (!tVal || !hsVal) {
-        alert("⚠ Completá las Tareas a realizar y el Horario habitual del turno.");
+        alert(
+          "⚠ Completá las Tareas a realizar y el Horario habitual del turno.",
+        );
         return;
       }
 
       // Calcular divisiones mediante la lógica robusta aprobada
       cat = calculateCategoryHours(dVal, sVal, eVal, templateVal);
-      
+
       if (cat.total < 0.5 || cat.total > 24) {
-        alert("⚠ Las horas calculadas entre Inicio y Fin son inválidas. Revisa los horarios.");
+        alert(
+          "⚠ Las horas calculadas entre Inicio y Fin son inválidas. Revisa los horarios.",
+        );
         return;
       }
-      
+
       tasksDesc = tVal;
       habitualSchedule = hsVal;
     }
 
     entryIdCounter++;
-    const [yy, mm, dd] = dVal.split('-');
-    
+    const [yy, mm, dd] = dVal.split("-");
+
     entriesList.push({
       _id: entryIdCounter,
       date: dVal,
@@ -471,18 +500,18 @@ if(btnAddEntry) {
       hours100: cat.h100,
       template_name: templateVal,
       tasks_desc: tasksDesc,
-      habitual_schedule: habitualSchedule
+      habitual_schedule: habitualSchedule,
     });
 
     // Reset Form for convenience
-    const [ryy, rmm, rdd] = dVal.split('-');
+    const [ryy, rmm, rdd] = dVal.split("-");
     const nextDay = new Date(ryy, rmm - 1, parseInt(rdd, 10));
     nextDay.setDate(nextDay.getDate() + 1);
-    const nyyyy  = nextDay.getFullYear();
-    const nmm    = String(nextDay.getMonth() + 1).padStart(2, "0");
-    const ndd    = String(nextDay.getDate()).padStart(2, "0");
+    const nyyyy = nextDay.getFullYear();
+    const nmm = String(nextDay.getMonth() + 1).padStart(2, "0");
+    const ndd = String(nextDay.getDate()).padStart(2, "0");
     entryDate.value = `${nyyyy}-${nmm}-${ndd}`;
-    
+
     // Clear fields
     entryTemplate.value = "";
     handleTemplateChange(); // trigger UI toggle back to normal state if needed
@@ -493,9 +522,9 @@ if(btnAddEntry) {
       entryLocation.value = "";
       entryReason.value = "";
     } else {
-      entryTasks.value = ""; 
+      entryTasks.value = "";
     }
-    
+
     showToast("✅ Registro añadido exitosamente.", "success");
 
     renderEntries();
@@ -504,32 +533,49 @@ if(btnAddEntry) {
 
 function renderEntries() {
   entriesListContainer.innerHTML = "";
-  
+
   if (entriesList.length === 0) {
     emptyState.style.display = "block";
     entriesListContainer.style.display = "none";
   } else {
     emptyState.style.display = "none";
     entriesListContainer.style.display = "flex";
-    
+
     entriesList.forEach((entry, idx) => {
       // BACKWARD COMPATIBILITY: If an old entry lacks hours50/hours100, calculate and backfill it.
-      if (typeof entry.hours50 === 'undefined' || typeof entry.hours100 === 'undefined') {
-        const cat = calculateCategoryHours(entry.date, entry.start_time, entry.end_time, entry.template_name);
+      if (
+        typeof entry.hours50 === "undefined" ||
+        typeof entry.hours100 === "undefined"
+      ) {
+        const cat = calculateCategoryHours(
+          entry.date,
+          entry.start_time,
+          entry.end_time,
+          entry.template_name,
+        );
         entry.hours50 = cat.h50;
         entry.hours100 = cat.h100;
         if (!entry.hours) entry.hours = cat.total;
       }
 
-      const templateBadge = entry.template_name.includes("Unife") ? "bg-[#8b5cf6]/20 text-[#c4b5fd] border-[#8b5cf6]/30" :
-                            entry.template_name.includes("Feriados") ? "bg-[#f59e0b]/20 text-[#fcd34d] border-[#f59e0b]/30" :
-                            "bg-info/20 text-[#93c5fd] border-info/30";
+      const templateBadge = entry.template_name.includes("Unife")
+        ? "bg-[#8b5cf6]/20 text-[#c4b5fd] border-[#8b5cf6]/30"
+        : entry.template_name.includes("Feriados")
+          ? "bg-[#f59e0b]/20 text-[#fcd34d] border-[#f59e0b]/30"
+          : "bg-info/20 text-[#93c5fd] border-info/30";
 
-      const badge50 = entry.hours50 > 0 ? `<span class="text-[0.7rem] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded font-bold ml-1">${entry.hours50}h (50%)</span>` : '';
-      const badge100 = entry.hours100 > 0 ? `<span class="text-[0.7rem] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-bold ml-1">${entry.hours100}h (100%)</span>` : '';
+      const badge50 =
+        entry.hours50 > 0
+          ? `<span class="text-[0.7rem] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded font-bold ml-1">${entry.hours50}h (50%)</span>`
+          : "";
+      const badge100 =
+        entry.hours100 > 0
+          ? `<span class="text-[0.7rem] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-bold ml-1">${entry.hours100}h (100%)</span>`
+          : "";
 
       const card = document.createElement("div");
-      card.className = "bg-white/5 border border-borderColor rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-row-in relative overflow-hidden group";
+      card.className =
+        "bg-white/5 border border-borderColor rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-row-in relative overflow-hidden group";
       card.innerHTML = `
         <div class="flex-1 flex flex-col gap-1.5 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
@@ -553,13 +599,13 @@ function renderEntries() {
       entriesListContainer.appendChild(card);
     });
   }
-  
+
   updateSummary();
   updateUI();
 }
 
-window.removeEntry = function(id) {
-  entriesList = entriesList.filter(e => e._id !== id);
+window.removeEntry = function (id) {
+  entriesList = entriesList.filter((e) => e._id !== id);
   renderEntries();
 };
 
@@ -579,10 +625,10 @@ function updateSummary() {
   const total = entriesList.reduce((sum, e) => sum + e.hours, 0);
   const total50 = entriesList.reduce((sum, e) => sum + (e.hours50 || 0), 0);
   const total100 = entriesList.reduce((sum, e) => sum + (e.hours100 || 0), 0);
-  
+
   summaryCount.textContent = entriesList.length;
   summaryHours.textContent = `${total.toFixed(1)} h`;
-  
+
   if (summary50) {
     if (total50 > 0) {
       summary50.style.display = "inline-block";
@@ -591,7 +637,7 @@ function updateSummary() {
       summary50.style.display = "none";
     }
   }
-  
+
   if (summary100) {
     if (total100 > 0) {
       summary100.style.display = "inline-block";
@@ -605,8 +651,8 @@ function updateSummary() {
 // ─── Credentials ─────────────────────────────────────────────────────────────
 btnTogglePass.addEventListener("click", () => {
   const isHidden = inputPass.type === "password";
-  inputPass.type  = isHidden ? "text" : "password";
-  eyeOpen.style.display   = isHidden ? "none" : "";
+  inputPass.type = isHidden ? "text" : "password";
+  eyeOpen.style.display = isHidden ? "none" : "";
   eyeClosed.style.display = isHidden ? "" : "none";
 });
 
@@ -622,10 +668,8 @@ btnTestLogin.addEventListener("click", async () => {
   btnTestLogin.disabled = true;
   btnTestLogin.textContent = "🔄 Probando...";
   try {
-    const res  = await fetch("/api/test-login", {
+    const res = await fetch("/api/test-login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...getCredentials(), entries: [{ date: "2026-01-01", hours: 1, hours50: 1, hours100: 0 }] }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -637,7 +681,8 @@ btnTestLogin.addEventListener("click", async () => {
     showToast("❌ Error de conexión: " + err.message, "error");
   } finally {
     btnTestLogin.disabled = false;
-    btnTestLogin.innerHTML = '<span class="btn-icon-left">🔗</span> Probar conexión';
+    btnTestLogin.innerHTML =
+      '<span class="btn-icon-left">🔗</span> Probar conexión';
   }
 });
 
@@ -648,11 +693,6 @@ btnSubmit.addEventListener("click", async () => {
   const entries = collectEntries();
   if (!entries) return; // validation failed, toast already shown
 
-  if (!envCredsLoaded && (!inputUser.value.trim() || !inputPass.value)) {
-    showToast("⚠ Ingresá usuario y contraseña primero.", "warning");
-    return;
-  }
-
   setRunning(true);
   openLogCard();
   logOutput.innerHTML = "";
@@ -662,16 +702,18 @@ btnSubmit.addEventListener("click", async () => {
     const res = await fetch("/api/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        ...getCredentials(), 
-        entries: entriesList 
+      body: JSON.stringify({
+        entries: entriesList,
         // template_name, tasks_desc and habitual_schedule are now inside each entry object
       }),
     });
     const data = await res.json();
 
     if (!res.ok) {
-      appendLog("error", "❌ Error: " + (data.detail || "Error al iniciar job."));
+      appendLog(
+        "error",
+        "❌ Error: " + (data.detail || "Error al iniciar job."),
+      );
       setRunning(false);
       setBadge("error", "Error");
       return;
@@ -680,7 +722,6 @@ btnSubmit.addEventListener("click", async () => {
     appendLog("success", `✅ Job iniciado. ID: ${data.job_id}`);
     setBadge("running", "Ejecutando...");
     pollStatus(data.job_id);
-
   } catch (err) {
     appendLog("error", "❌ Error de red: " + err.message);
     setRunning(false);
@@ -701,10 +742,10 @@ let pollErrorCount = 0;
 function pollStatus(jobId) {
   lastLogLength = 0;
   pollErrorCount = 0;
-  
+
   pollingId = setInterval(async () => {
     try {
-      const res  = await fetch(`/api/status/${jobId}`);
+      const res = await fetch(`/api/status/${jobId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -713,7 +754,7 @@ function pollStatus(jobId) {
 
       // Render new log lines
       const newLines = data.log.slice(lastLogLength);
-      newLines.forEach(entry => appendLog(entry.type, entry.msg));
+      newLines.forEach((entry) => appendLog(entry.type, entry.msg));
       lastLogLength = data.log.length;
 
       if (data.status !== "running") {
@@ -730,13 +771,16 @@ function pollStatus(jobId) {
     } catch (err) {
       pollErrorCount++;
       console.warn(`Polling network error (${pollErrorCount}/5):`, err);
-      
+
       if (pollErrorCount >= 5) {
-          clearInterval(pollingId);
-          appendLog("error", "❌ Conexión perdida repetidamente. El proceso puede seguir corriendo en el servidor.");
-          showToast("Conexión perdida con el servidor", "error");
-          setRunning(false);
-          setBadge("error", "Desconectado");
+        clearInterval(pollingId);
+        appendLog(
+          "error",
+          "❌ Conexión perdida repetidamente. El proceso puede seguir corriendo en el servidor.",
+        );
+        showToast("Conexión perdida con el servidor", "error");
+        setRunning(false);
+        setBadge("error", "Desconectado");
       }
     }
   }, 1500);
@@ -773,7 +817,9 @@ function setRunning(running) {
   isRunning = running;
   btnSubmit.disabled = running;
   submitSpinner.style.display = running ? "inline-block" : "none";
-  submitLabel.textContent = running ? "Enviando..." : "⚡ Enviar todo al Legajo";
+  submitLabel.textContent = running
+    ? "Enviando..."
+    : "⚡ Enviar todo al Legajo";
   btnTestLogin.disabled = running;
   if (!running) updateUI();
 }
@@ -792,7 +838,7 @@ function showToast(msg, type = "info", duration = 4000) {
 
 // ─── Utils ───────────────────────────────────────────────────────────────────
 function escapeHtml(str) {
-  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // ─── Event listeners ─────────────────────────────────────────────────────────
@@ -802,96 +848,113 @@ btnClearAll.addEventListener("click", () => {
 
 // ─── TABS AND HISTORY LOGIC ──────────────────────────────────────────────────
 tabSubmit.addEventListener("click", () => {
-    tabSubmit.classList.add("active");
-    tabHistory.classList.remove("active");
-    viewSubmit.style.display = "grid"; 
-    viewHistory.style.display = "none";
+  tabSubmit.classList.add("active");
+  tabHistory.classList.remove("active");
+  viewSubmit.style.display = "grid";
+  viewHistory.style.display = "none";
 });
 
 tabHistory.addEventListener("click", () => {
-    tabHistory.classList.add("active");
-    tabSubmit.classList.remove("active");
-    viewSubmit.style.display = "none";
-    viewHistory.style.display = "block";
-    loadPeriods();
+  tabHistory.classList.add("active");
+  tabSubmit.classList.remove("active");
+  viewSubmit.style.display = "none";
+  viewHistory.style.display = "block";
+  loadPeriods();
 });
 
 async function loadPeriods() {
-    try {
-        periodSelect.innerHTML = '<option value="">Cargando...</option>';
-        
-        const res = await fetch("/api/periods");
-        if(res.status === 401) { showToast("Acceso denegado (Auth)", "error"); return; }
-        const periods = await res.json();
-        
-        periodSelect.innerHTML = '<option value="">Selecciona un periodo</option>';
-        if(periods.length === 0) {
-            periodSelect.innerHTML = '<option value="">Aún no hay historial de envíos</option>';
-            return;
-        }
-        periods.forEach(p => {
-            const opt = document.createElement("option");
-            opt.value = p.id;
-            opt.textContent = `${p.label} (${p.total_hours} hs)`;
-            opt.dataset.total = p.total_hours;
-            periodSelect.appendChild(opt);
-        });
-    } catch(err) {
-        showToast("Error cargando periodos", "error");
-        console.error(err);
+  try {
+    periodSelect.innerHTML = '<option value="">Cargando...</option>';
+
+    const res = await fetch("/api/periods");
+    if (res.status === 401) {
+      showToast("Acceso denegado (Auth)", "error");
+      return;
     }
+    const periods = await res.json();
+
+    periodSelect.innerHTML = '<option value="">Selecciona un periodo</option>';
+    if (periods.length === 0) {
+      periodSelect.innerHTML =
+        '<option value="">Aún no hay historial de envíos</option>';
+      return;
+    }
+    periods.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = `${p.label} (${p.total_hours} hs)`;
+      opt.dataset.total = p.total_hours;
+      periodSelect.appendChild(opt);
+    });
+  } catch (err) {
+    showToast("Error cargando periodos", "error");
+    console.error(err);
+  }
 }
 
 periodSelect.addEventListener("change", async (e) => {
-    const periodId = e.target.value;
-    if(!periodId) {
-        historyTable.style.display = "none";
-        historyEmpty.style.display = "block";
-        historyTotalHours.textContent = "0";
-        return;
+  const periodId = e.target.value;
+  if (!periodId) {
+    historyTable.style.display = "none";
+    historyEmpty.style.display = "block";
+    historyTotalHours.textContent = "0";
+    return;
+  }
+  const selectedOpt = periodSelect.options[periodSelect.selectedIndex];
+  historyTotalHours.textContent = selectedOpt.dataset.total;
+
+  try {
+    historyList.innerHTML =
+      "<tr><td colspan='4' style='text-align:center;'>Cargando...</td></tr>";
+    historyTable.style.display = "table";
+    historyEmpty.style.display = "none";
+
+    const res = await fetch(`/api/history/${periodId}`);
+    const entries = await res.json();
+
+    if (entries.length === 0) {
+      historyTable.style.display = "none";
+      historyEmpty.style.display = "block";
+      return;
     }
-    const selectedOpt = periodSelect.options[periodSelect.selectedIndex];
-    historyTotalHours.textContent = selectedOpt.dataset.total;
-    
-    try {
-        historyList.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Cargando...</td></tr>";
-        historyTable.style.display = "table";
-        historyEmpty.style.display = "none";
-        
-        const res = await fetch(`/api/history/${periodId}`);
-        const entries = await res.json();
-        
-        if(entries.length === 0) {
-            historyTable.style.display = "none";
-            historyEmpty.style.display = "block";
-            return;
+
+    historyList.innerHTML = entries
+      .map((e) => {
+        // Verificar si el backend nos devolvió hours50 y hours100.
+        // Si el backend aún no está enviando esto para registros viejos, lo estimamos con start_time="09:00"
+        let h50 = e.hours50;
+        let h100 = e.hours100;
+        const totalHoursInt = parseFloat(e.hours);
+
+        if (h50 === undefined || h100 === undefined) {
+          // Cálculo de respaldo para historial viejo
+          const cat = calculateCategoryHours(
+            e.work_date,
+            "09:00",
+            "18:00",
+            e.template,
+          );
+          // Ajustamos el resultado para que sume exactamente las e.hours usando un ratio:
+          if (cat.total > 0) {
+            const ratio50 = cat.h50 / cat.total;
+            h50 = parseFloat((totalHoursInt * ratio50).toFixed(1));
+            h100 = parseFloat((totalHoursInt - h50).toFixed(1));
+          } else {
+            h50 = totalHoursInt;
+            h100 = 0;
+          }
         }
-        
-        historyList.innerHTML = entries.map(e => {
-            // Verificar si el backend nos devolvió hours50 y hours100.
-            // Si el backend aún no está enviando esto para registros viejos, lo estimamos con start_time="09:00"
-            let h50 = e.hours50;
-            let h100 = e.hours100;
-            const totalHoursInt = parseFloat(e.hours);
 
-            if (h50 === undefined || h100 === undefined) {
-                // Cálculo de respaldo para historial viejo
-                const cat = calculateCategoryHours(e.work_date, "09:00", "18:00", e.template);
-                // Ajustamos el resultado para que sume exactamente las e.hours usando un ratio:
-                if (cat.total > 0) {
-                  const ratio50 = cat.h50 / cat.total;
-                  h50 = parseFloat((totalHoursInt * ratio50).toFixed(1));
-                  h100 = parseFloat((totalHoursInt - h50).toFixed(1));
-                } else {
-                  h50 = totalHoursInt;
-                  h100 = 0;
-                }
-            }
+        const badge50 =
+          h50 > 0
+            ? `<div class="mt-1"><span class="text-[0.65rem] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${h50}h (50%)</span></div>`
+            : "";
+        const badge100 =
+          h100 > 0
+            ? `<div class="mt-1"><span class="text-[0.65rem] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${h100}h (100%)</span></div>`
+            : "";
 
-            const badge50 = h50 > 0 ? `<div class="mt-1"><span class="text-[0.65rem] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${h50}h (50%)</span></div>` : '';
-            const badge100 = h100 > 0 ? `<div class="mt-1"><span class="text-[0.65rem] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${h100}h (100%)</span></div>` : '';
-
-            return `
+        return `
             <tr>
               <td><strong>${e.work_date}</strong></td>
               <td>
@@ -903,29 +966,31 @@ periodSelect.addEventListener("change", async (e) => {
                 <div style="font-size:0.85rem; font-weight: 500">${e.template}</div>
                 <div style="font-size:0.75rem; color: var(--text-muted)">${e.tasks} • ${e.schedule}</div>
               </td>
-              <td style="font-size:0.8rem; color:var(--text-muted)">${new Date(e.submitted_at).toLocaleString('es-AR', {dateStyle: 'short', timeStyle: 'short'})}</td>
+              <td style="font-size:0.8rem; color:var(--text-muted)">${new Date(e.submitted_at).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" })}</td>
             </tr>
             `;
-        }).join('');
-    } catch(err) {
-        showToast("Error cargando detalle", "error");
-        console.error(err);
-    }
+      })
+      .join("");
+  } catch (err) {
+    showToast("Error cargando detalle", "error");
+    console.error(err);
+  }
 });
 
 // ─── PREVIEW MODAL ────────────────────────────────────────────────────────────
-const btnPreview     = document.getElementById("btn-preview");
+const btnPreview = document.getElementById("btn-preview");
 const previewOverlay = document.getElementById("preview-overlay");
 
 btnPreview.addEventListener("click", openPreview);
 
 function openPreview() {
   // ── Asunto = "Vista Previa de Múltiples Solicitudes" (Ya no es uno global)
-  document.getElementById("pv-asunto").textContent = "Múltiples plantillas (ver desglose)";
+  document.getElementById("pv-asunto").textContent =
+    "Múltiples plantillas (ver desglose)";
 
   // ── Nombre: use username field or env-creds label
   const nombreEl = document.getElementById("pv-nombre");
-  const userVal  = (document.getElementById("input-user")?.value || "").trim();
+  const userVal = (document.getElementById("input-user")?.value || "").trim();
   nombreEl.textContent = userVal || "— (credenciales desde entorno) —";
 
   // Ocultar sección estática de Tareas y Horario, ya que ahora son por registro
@@ -937,15 +1002,21 @@ function openPreview() {
   container.innerHTML = "";
 
   if (entriesList.length === 0) {
-    container.innerHTML = "<p style='color:#999; font-size:13px;'>Sin registros cargados.</p>";
+    container.innerHTML =
+      "<p style='color:#999; font-size:13px;'>Sin registros cargados.</p>";
   } else {
     entriesList.forEach((entry, idx) => {
       // Solo el número de hora, sin minutos (igual que envía el bot: "07:00" → "7")
-      const startVal = entry.start_time ? String(parseInt(entry.start_time.split(":")[0], 10)) : "";
-      const endVal   = entry.end_time   ? String(parseInt(entry.end_time.split(":")[0],   10)) : "";
+      const startVal = entry.start_time
+        ? String(parseInt(entry.start_time.split(":")[0], 10))
+        : "";
+      const endVal = entry.end_time
+        ? String(parseInt(entry.end_time.split(":")[0], 10))
+        : "";
 
       const block = document.createElement("div");
-      block.style.cssText = "border:1px solid #e0e0e0; border-radius:5px; padding:12px 14px; margin-bottom:10px; background:#fafafa;";
+      block.style.cssText =
+        "border:1px solid #e0e0e0; border-radius:5px; padding:12px 14px; margin-bottom:10px; background:#fafafa;";
       block.innerHTML = `
         <div style="font-size:11px; font-weight:700; color:#4a7c59; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Entrada ${idx + 1} — ${entry.template_name}</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -984,7 +1055,7 @@ function openPreview() {
   document.body.style.overflow = "hidden";
 }
 
-window.closePreview = function() {
+window.closePreview = function () {
   previewOverlay.style.display = "none";
   document.body.style.overflow = "";
 };
@@ -996,6 +1067,6 @@ previewOverlay.addEventListener("click", (e) => {
 
 // Close on Escape key
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && previewOverlay.style.display === "flex") closePreview();
+  if (e.key === "Escape" && previewOverlay.style.display === "flex")
+    closePreview();
 });
-
