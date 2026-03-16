@@ -97,16 +97,13 @@ async function checkAuth() {
     if (res.ok) {
       loginOverlay.style.display = "none";
       mainAppContainer.style.display = "block";
-      // Credentials always come from session or env vars — never from input fields
-      credsFields.style.display = "none";
+      // Credentials come from session/env — hide the entire card
+      document.getElementById("credentials-card").style.display = "none";
       fetch("/api/health")
         .then((r) => r.json())
         .then((data) => {
           if (data.env_creds) {
-            envNotice.style.display = "flex";
             envCredsLoaded = true;
-          } else {
-            document.getElementById("session-notice").style.display = "flex";
           }
         })
         .catch(() => {});
@@ -663,6 +660,12 @@ function getCredentials() {
   };
 }
 
+function handleUnauthorized() {
+  showToast("Sesión expirada. Por favor, iniciá sesión de nuevo.", "warning");
+  loginOverlay.style.display = "flex";
+  mainAppContainer.style.display = "none";
+}
+
 // ─── Test login ───────────────────────────────────────────────────────────────
 btnTestLogin.addEventListener("click", async () => {
   btnTestLogin.disabled = true;
@@ -674,6 +677,8 @@ btnTestLogin.addEventListener("click", async () => {
     const data = await res.json();
     if (res.ok) {
       showToast("✅ " + data.message, "success");
+    } else if (res.status === 401) {
+      handleUnauthorized();
     } else {
       showToast("❌ " + (data.detail || "Login fallido"), "error");
     }
@@ -709,6 +714,11 @@ btnSubmit.addEventListener("click", async () => {
     });
     const data = await res.json();
 
+    if (res.status === 401) {
+      handleUnauthorized();
+      setRunning(false);
+      return;
+    }
     if (!res.ok) {
       appendLog(
         "error",
